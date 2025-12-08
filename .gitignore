@@ -7,3 +7,29 @@
 .kiro/steering/byterover-rules.md
 .qoder/rules/byterover-rules.md
 .augment/rules/byterover-rules.md
+
+# PocketBase temporary files
+pocketbase/pb_data/*.db-shm
+pocketbase/pb_data/*.db-wal
+pocketbase/pb_data/logs/
+*.log
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/.vite/
+
+# Environment files
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
