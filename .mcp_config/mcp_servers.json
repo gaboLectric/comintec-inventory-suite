@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "uvx",
+      "args": ["mcp-server-sqlite", "--db-path", "./pocketbase/pb_data/data.db"]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    },
+    "context-mapper": {
+      "command": "node",
+      "args": ["/home/gabolectric/development/MCP_context-mapper/dist/index.js"]
+    },
+    "byterover-mcp": {
+      "command": "npx",
+      "args": ["-y", "byterover-mcp"],
+      "env": {
+        "BYTEROVER_API_KEY": "YOUR_API_KEY_HERE"
+      }
+    },
+    "context7-mcp": {
+      "command": "npx",
+      "args": ["-y", "context7-mcp"],
+      "env": {
+        "CONTEXT7_API_KEY": "YOUR_API_KEY_HERE"
+      }
+    }
+  }
+}

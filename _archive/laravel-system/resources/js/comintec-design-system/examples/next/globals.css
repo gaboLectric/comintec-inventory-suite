@@ -1,0 +1,17 @@
+@import url('../../tokens.css');
+
+html { font-size: 13px; }
+body { font-family: var(--font-family); background: var(--bg-primary); color: var(--font-color-primary); }
+
+/* Links y texto base */
+a { color: var(--brand-blue-9); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Botones base (si no usas componentes) */
+button { font-size: 13px; }
+
+/* Formularios */
+input, select, textarea {
+  font: inherit;
+  color: var(--font-color-primary);
+}

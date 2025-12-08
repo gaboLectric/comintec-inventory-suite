@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  backend:
+    build: ./modern-system
+    container_name: modern-backend
+    ports:
+      - "8000:80"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://backend
+      - FRONTEND_URL=http://frontend:5173
+      - SANCTUM_STATEFUL_DOMAINS=localhost:5173,127.0.0.1:5173,frontend:5173
+    networks:
+      - modern-net
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: modern-frontend
+    environment:
+      - VITE_BACKEND_URL=http://backend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - modern-net
+networks:
+  modern-net:
+    driver: bridge
