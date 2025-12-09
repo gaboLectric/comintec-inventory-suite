@@ -13,7 +13,15 @@ const collectionMocks = {
 // Mock PocketBase
 vi.mock('./pocketbase', () => ({
     default: {
-        collection: vi.fn(() => collectionMocks)
+        collection: vi.fn(() => collectionMocks),
+        admins: {
+            getFullList: vi.fn().mockResolvedValue([])
+        },
+        authStore: {
+            isSuperuser: false,
+            isAdmin: false,
+            model: { id: 'user1' }
+        }
     }
 }));
 
@@ -50,7 +58,7 @@ describe('API Service', () => {
             const users = await api.fetchUsers();
             expect(pb.collection).toHaveBeenCalledWith('users');
             expect(collectionMocks.getFullList).toHaveBeenCalled();
-            expect(users).toEqual(mockUsers);
+            expect(users).toEqual([{ id: 1, name: 'User 1', kind: 'user' }]);
         } catch (e) {
             // Expected failure during Red phase
             throw e;
@@ -74,17 +82,25 @@ describe('API Service', () => {
 
     it('fetchDashboardStats should aggregate counts', async () => {
         collectionMocks.getList.mockResolvedValue({ totalItems: 10 });
+        // Mock getFullList for checkLowStock
+        collectionMocks.getFullList.mockResolvedValue([
+            { piezas: 5, stock_deseado: 10 }, // Low stock
+            { piezas: 2, stock_deseado: 5 },  // Low stock
+            { piezas: 10, stock_deseado: 10 } // OK
+        ]);
         
         try {
             const stats = await api.fetchDashboardStats();
             
             expect(pb.collection).toHaveBeenCalledWith('users');
-            expect(pb.collection).toHaveBeenCalledWith('products');
-            expect(pb.collection).toHaveBeenCalledWith('sales');
+            expect(pb.collection).toHaveBeenCalledWith('equipments');
+            expect(pb.collection).toHaveBeenCalledWith('supplies');
+            
             expect(stats).toEqual({
-                users_count: 10,
-                products_count: 10,
-                sales_count: 10
+                users: 10,
+                equipments: 10,
+                supplies: 10,
+                lowStock: 2 // 2 items match the condition
             });
         } catch (e) {
             throw e;

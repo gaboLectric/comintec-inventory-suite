@@ -7,11 +7,13 @@ import { ThemeProvider } from './comintec-design-system/emotion/ThemeProvider';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
+import { ToastProvider } from './components/Toast';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
-import { Products } from './pages/Products';
-import { Sales } from './pages/Sales';
-import { Categories } from './pages/Categories';
+import { Equipments } from './pages/Equipments';
+import { Supplies } from './pages/Supplies';
+import { EquipmentOutputs } from './pages/EquipmentOutputs';
+import { SupplyOutputs } from './pages/SupplyOutputs';
 import { Users } from './pages/Users';
 
 function AppRoutes() {
@@ -26,15 +28,20 @@ function AppRoutes() {
                 </ProtectedRoute>
             }>
                 <Route index element={<Dashboard />} />
-                <Route path="products" element={
+                <Route path="almacen/equipos" element={<Equipments />} />
+                <Route path="almacen/insumos" element={
                     <ProtectedRoute requiredLevel={2}>
-                        <Products />
+                        <Supplies />
                     </ProtectedRoute>
                 } />
-                <Route path="sales" element={<Sales />} />
-                <Route path="categories" element={
+                <Route path="salidas/equipos" element={
                     <ProtectedRoute requiredLevel={2}>
-                        <Categories />
+                        <EquipmentOutputs />
+                    </ProtectedRoute>
+                } />
+                <Route path="salidas/insumos" element={
+                    <ProtectedRoute requiredLevel={2}>
+                        <SupplyOutputs />
                     </ProtectedRoute>
                 } />
                 <Route path="users" element={
@@ -53,11 +60,13 @@ function AppRoutes() {
 function App() {
     return (
         <ThemeProvider>
-            <AuthProvider>
-                <BrowserRouter>
-                    <AppRoutes />
-                </BrowserRouter>
-            </AuthProvider>
+            <ToastProvider>
+                <AuthProvider>
+                    <BrowserRouter>
+                        <AppRoutes />
+                    </BrowserRouter>
+                </AuthProvider>
+            </ToastProvider>
         </ThemeProvider>
     );
 }

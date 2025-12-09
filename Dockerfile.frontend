@@ -1,13 +1,16 @@
-FROM node:22-alpine
+FROM oven/bun:1
 
 WORKDIR /app
 
-# Copy dependency manifests and install once for build cache
-COPY modern-system/package*.json /app/modern-system/
-RUN cd /app/modern-system && npm install
+# Copy dependency manifests
+COPY frontend/package.json ./
+COPY frontend/bun.lockb* ./
+
+# Install dependencies
+RUN bun install
 
 # Copy project files
-COPY . /app/
+COPY frontend/ ./
 
 # Copy custom entrypoint
 COPY docker/frontend-entrypoint.sh /usr/local/bin/frontend-entrypoint.sh

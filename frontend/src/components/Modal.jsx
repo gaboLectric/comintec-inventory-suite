@@ -117,3 +117,26 @@ export function Modal({ isOpen, onClose, title, children, size = 'medium' }) {
         </Overlay>
     );
 }
+
+export function ImageModal({ isOpen, onClose, imageUrl, altText }) {
+    if (!isOpen) return null;
+    
+    return (
+        <Overlay onClick={onClose}>
+            <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh', display: 'flex', justifyContent: 'center' }}>
+                <img 
+                    src={imageUrl} 
+                    alt={altText || 'Imagen expandida'} 
+                    style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-super-heavy)' }} 
+                />
+                <CloseButton 
+                    onClick={onClose} 
+                    style={{ position: 'absolute', top: '-40px', right: '0', color: 'white', background: 'rgba(0,0,0,0.5)', borderRadius: '50%' }}
+                >
+                    <X />
+                </CloseButton>
+            </div>
+        </Overlay>
+    );
+}
+

@@ -1,25 +1,37 @@
 # Inventario Mod
 
-Modernized Inventory System using PocketBase and React.
+Sistema de Inventario Modernizado utilizando PocketBase, React y Bun.
 
-## Getting Started
+## Características Principales
+- **Backend**: PocketBase (Go) con migraciones automáticas en JS.
+- **Frontend**: React + Vite + Emotion.
+- **Runtime**: Bun (reemplazando Node.js).
+- **Gestión**:
+  - **Equipos**: Control por número de serie, imágenes y detalles técnicos.
+  - **Insumos**: Control de stock por cantidad.
+  - **Salidas**: Registro de movimientos de salida para equipos e insumos.
 
-### Prerequisites
+## Requisitos
 - Docker & Docker Compose
 
-### Running the Application
-Use the main `docker-compose.yml` file:
+## Ejecución
 
 ```bash
-docker-compose up -d
+# Construir e iniciar los contenedores
+docker-compose up --build
 ```
 
-This will start:
-- **PocketBase** (Backend) on `http://localhost:8090`
-- **Frontend** (React) on `http://localhost:5173`
+Esto iniciará:
+- **PocketBase** (Backend/Admin) en `http://localhost:8090`
+  - Admin UI: `http://localhost:8090/_/`
+- **Frontend** (App) en `http://localhost:5173`
 
-## Legacy Files
-Legacy configuration files (e.g., `docker-compose.modern.yml`, `docker-compose.prod.yml`) have been moved to the `_archive/` directory.
+## Estructura del Proyecto
+- `frontend/`: Código fuente de la aplicación React.
+- `pocketbase/`: Migraciones y datos de la base de datos.
+- `docker/`: Scripts y configuraciones de contenedores.
+- `_archive/`: Archivos legacy y documentación antigua.
 
-## Development
-Refer to `.agentic_rules/MASTER_RULES.md` for development protocols.
+## Notas de Desarrollo
+- El proyecto utiliza **Bun** como gestor de paquetes y runtime en el entorno de desarrollo (Docker).
+- Las colecciones de la base de datos se crean automáticamente al iniciar PocketBase gracias a las migraciones en `pocketbase/pb_migrations`.

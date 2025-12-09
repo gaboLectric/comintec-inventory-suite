@@ -1,161 +1,193 @@
 import pb from './pocketbase';
 
-// Dashboard
-export const fetchDashboardStats = async () => {
+// --- Equipments ---
+
+export const getEquipments = async (page = 1, perPage = 50, filter = '') => {
+    const options = {
+        // sort: '-created', // 'created' field might be missing if system fields are disabled
+        expand: 'media_id',
+        requestKey: null
+    };
+    if (filter) options.filter = filter;
+    
+    return await pb.collection('equipments').getList(page, perPage, options);
+};
+
+export const getEquipment = async (id) => {
+    return await pb.collection('equipments').getOne(id);
+};
+
+export const createEquipment = async (data) => {
+    return await pb.collection('equipments').create(data);
+};
+
+export const updateEquipment = async (id, data) => {
+    return await pb.collection('equipments').update(id, data);
+};
+
+export const deleteEquipment = async (id) => {
+    return await pb.collection('equipments').delete(id);
+};
+
+// --- Supplies ---
+
+export const getSupplies = async (page = 1, perPage = 50, filter = '') => {
+    const options = {
+        // sort: 'nombre', // Sorting seems to cause 400 errors
+        requestKey: null
+    };
+    if (filter) options.filter = filter;
+
+    return await pb.collection('supplies').getList(page, perPage, options);
+};
+
+export const getSupply = async (id) => {
+    return await pb.collection('supplies').getOne(id);
+};
+
+export const createSupply = async (data) => {
+    return await pb.collection('supplies').create(data);
+};
+
+export const updateSupply = async (id, data) => {
+    return await pb.collection('supplies').update(id, data);
+};
+
+export const deleteSupply = async (id) => {
+    return await pb.collection('supplies').delete(id);
+};
+
+// --- Outputs ---
+
+export const getEquipmentOutputs = async (page = 1, perPage = 50, filter = '') => {
+    const options = {
+        // sort: '-fecha',
+        requestKey: null
+    };
+    if (filter) options.filter = filter;
+
+    return await pb.collection('equipment_outputs').getList(page, perPage, options);
+};
+
+export const createEquipmentOutput = async (data) => {
+    // data should include equipment object details + output details
+    const output = await pb.collection('equipment_outputs').create(data);
+    
+    // If successful, delete the equipment
+    if (output && data.equipment_id) {
+        try {
+            await pb.collection('equipments').delete(data.equipment_id);
+        } catch (error) {
+            console.error("Error deleting equipment after output:", error);
+        }
+    }
+    return output;
+};
+
+export const getSupplyOutputs = async (page = 1, perPage = 50, filter = '') => {
+    const options = {
+        // sort: '-fecha',
+        requestKey: null
+    };
+    if (filter) options.filter = filter;
+
+    return await pb.collection('supply_outputs').getList(page, perPage, options);
+};
+
+export const createSupplyOutput = async (data) => {
+    // 1. Create output
+    // We need to fetch supply first to enforce rules
+    const supply = await pb.collection('supplies').getOne(data.supply_id);
+    
+    // Guard: Prevent negative stock (Comment 3)
+    const newStock = supply.piezas - data.cantidad;
+    if (newStock < 0) {
+        throw new Error("Stock insuficiente para realizar la salida");
+    }
+
+    // Enforce full withdrawal (Comment 2)
+    // We ignore data.cantidad for the update and set stock to 0
+    // But we use data.cantidad for the output record, which should match supply.piezas
+    
+    const output = await pb.collection('supply_outputs').create(data);
+    
+    // 2. Update supply stock
+    if (output && data.supply_id) {
+        try {
+            // Always set stock to zero (Comment 2)
+            await pb.collection('supplies').update(data.supply_id, { piezas: 0 });
+        } catch (error) {
+            console.error("Error updating supply stock after output:", error);
+        }
+    }
+    return output;
+};
+
+// --- Dashboard & Helpers ---
+
+export const checkLowStock = async () => {
     try {
-        const adminCountPromise = (pb.authStore.isSuperuser || pb.authStore.isAdmin)
-            ? pb.admins.getList(1, 1, { requestKey: 'dashboard_admins' }).catch((err) => {
-                console.warn('Admin count failed, ignoring for stats:', err);
-                return null;
-            })
-            : Promise.resolve(null);
-
-        const [users, products, sales, categories, admins] = await Promise.all([
-            pb.collection('users').getList(1, 1, { requestKey: 'dashboard_users' }),
-            pb.collection('products').getList(1, 1, { requestKey: 'dashboard_products' }),
-            pb.collection('sales').getList(1, 1, { requestKey: 'dashboard_sales' }),
-            pb.collection('categories').getList(1, 1, { requestKey: 'dashboard_categories' }),
-            adminCountPromise,
-        ]);
-
-        const adminCount = Number(admins?.totalItems) || 0; // Include superusers when logged-in session has permission
-
-        return {
-            users: (Number(users?.totalItems) || 0) + adminCount,
-            products: Number(products?.totalItems) || 0,
-            sales: Number(sales?.totalItems) || 0,
-            categories: Number(categories?.totalItems) || 0,
-        };
+        // PocketBase doesn't support field comparison in filters (e.g. 'piezas < stock_deseado')
+        // So we fetch all supplies and filter client-side.
+        const allSupplies = await pb.collection('supplies').getFullList({
+            requestKey: 'check_low_stock'
+        });
+        
+        return allSupplies.filter(item => item.piezas < item.stock_deseado);
     } catch (error) {
-        console.error('Error fetching dashboard stats:', error);
-        return { users: 0, products: 0, sales: 0, categories: 0 };
+        console.error("Error checking low stock:", error);
+        return [];
     }
 };
 
-export const fetchTopProducts = async () => {
-    // Aggregate sales by product to show best sellers
-    const [sales, products] = await Promise.all([
-        pb.collection('sales').getFullList({ expand: 'product_id', requestKey: null }),
-        pb.collection('products').getFullList({ requestKey: null }),
-    ]);
+export const fetchDashboardStats = async () => {
+    try {
+        const userLevel = getUserLevel();
+        const showSupplies = userLevel <= 2;
 
-    // Map of productId -> product name for fallback when expand is missing
-    const productNameById = new Map(products.map((p) => [p.id, p.name]));
+        const [users, equipments, supplies, lowStockItems] = await Promise.all([
+            pb.collection('users').getList(1, 1, { requestKey: 'dash_users' }),
+            pb.collection('equipments').getList(1, 1, { requestKey: 'dash_equipments' }),
+            showSupplies ? pb.collection('supplies').getList(1, 1, { requestKey: 'dash_supplies' }) : Promise.resolve({ totalItems: 0 }),
+            showSupplies ? checkLowStock() : Promise.resolve([])
+        ]);
 
-    const totalsByProduct = new Map();
-
-    sales.forEach((sale) => {
-        const product = sale.expand?.product_id;
-        const productId = product?.id || sale.product_id || 'unknown';
-        const name = product?.name || productNameById.get(productId) || 'Producto eliminado';
-
-        const qty = Number(sale.qty) || 0;
-        const price = Number(sale.price) || 0; // price per unit
-        const total = qty * price; // total revenue for this sale
-
-        const existing = totalsByProduct.get(productId) || { name, totalQty: 0, totalSold: 0 };
-        existing.name = name; // refresh in case we had placeholder
-        existing.totalQty += qty;
-        existing.totalSold += total;
-        totalsByProduct.set(productId, existing);
-    });
-
-    return Array.from(totalsByProduct.values())
-        .sort((a, b) => b.totalQty - a.totalQty)
-        .slice(0, 5);
+        return {
+            users: users?.totalItems || 0,
+            equipments: equipments?.totalItems || 0,
+            supplies: supplies?.totalItems || 0,
+            lowStock: lowStockItems.length || 0,
+        };
+    } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+        return { users: 0, equipments: 0, supplies: 0, lowStock: 0 };
+    }
 };
 
-export const fetchRecentProducts = async () => {
-    const result = await pb.collection('products').getList(1, 5, { sort: '-created', expand: 'categorie_id', requestKey: null });
-    return result.items.map(p => ({
-        ...p,
-        category: p.expand?.categorie_id?.name || 'Sin categoría' // Keep human-readable category
-    }));
+export const getUserLevel = () => {
+    return pb.authStore.model?.user_level || 3; // Default to User
 };
 
-export const fetchRecentSales = async () => {
-    const result = await pb.collection('sales').getList(1, 5, { sort: '-created', expand: 'product_id', requestKey: null });
-    return result.items.map(s => ({
-        id: s.id,
-        product: s.expand?.product_id?.name || s.product_id || 'Producto eliminado',
-        quantity: s.qty,
-        price: (Number(s.price) || 0) * (Number(s.qty) || 0), // total price = unit price * quantity
-        date: s.date
-    }));
+export const canAccessSupplies = () => {
+    const level = getUserLevel();
+    return level <= 2; // Admin(1) or Special(2)
 };
 
-export const fetchSalesChart = async () => {
-    // Monthly sales totals (sum of price) grouped by month (UTC)
-    const sales = await pb.collection('sales').getFullList({ requestKey: null });
-    const byMonth = new Map();
-
-    sales.forEach((s) => {
-        const date = s.date ? new Date(s.date) : null;
-        const key = date ? `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}` : 'sin-fecha';
-        const total = (Number(s.price) || 0);
-        byMonth.set(key, (byMonth.get(key) || 0) + total);
-    });
-
-    const labels = Array.from(byMonth.keys()).sort();
-    const values = labels.map((k) => byMonth.get(k));
-    return { labels, values };
+export const canCreateOutputs = () => {
+    const level = getUserLevel();
+    return level <= 2;
 };
 
-export const fetchProductsByCategory = async () => {
-    const products = await pb.collection('products').getFullList({ expand: 'categorie_id', requestKey: null });
-    const byCat = new Map();
 
-    products.forEach((p) => {
-        const catName = p.expand?.categorie_id?.name || 'Sin categoría';
-        byCat.set(catName, (byCat.get(catName) || 0) + 1);
-    });
 
-    const labels = Array.from(byCat.keys());
-    const values = labels.map((k) => byCat.get(k));
-    return { labels, values };
-};
-
-export const fetchDailySales = async () => {
-    // Daily totals (sum price) for line chart
-    const sales = await pb.collection('sales').getFullList({ requestKey: null });
-    const byDay = new Map();
-
-    sales.forEach((s) => {
-        const date = s.date ? new Date(s.date) : null;
-        const key = date ? date.toISOString().slice(0, 10) : 'sin-fecha';
-        const total = (Number(s.price) || 0);
-        byDay.set(key, (byDay.get(key) || 0) + total);
-    });
-
-    const labels = Array.from(byDay.keys()).sort();
-    const values = labels.map((k) => byDay.get(k));
-    return { labels, values };
-};
 
 // Users
 export const fetchUsers = async () => {
-    const [appUsers, admins] = await Promise.all([
-        pb.collection('users').getFullList({ requestKey: null }),
-        (pb.authStore.isSuperuser || pb.authStore.isAdmin)
-            ? pb.admins.getFullList({ requestKey: null }).catch((err) => {
-                console.warn('Admin list failed, ignoring:', err);
-                return [];
-            })
-            : Promise.resolve([]),
-    ]);
-
-    const adminAsUsers = admins.map((a) => ({
-        id: a.id,
-        name: a.name || a.email || a.username || 'Admin',
-        username: a.email || a.username || 'admin',
-        user_level: 1,
-        status: 1,
-        kind: 'admin',
-    }));
-
+    // Only fetch from 'users' collection (auth collection)
+    // Admins/superusers are managed separately via PocketBase admin UI
+    const appUsers = await pb.collection('users').getFullList({ requestKey: null });
     const mappedUsers = appUsers.map((u) => ({ ...u, kind: 'user' }));
-
-    return [...adminAsUsers, ...mappedUsers];
+    return mappedUsers;
 };
 
 export const createUser = async (userData) => {
@@ -170,61 +202,4 @@ export const deleteUser = async (userId) => {
     await pb.collection('users').delete(userId);
 };
 
-// Products
-export const fetchProducts = async () => {
-    const products = await pb.collection('products').getFullList({ sort: '-created', expand: 'categorie_id' });
-    return products.map(p => ({
-        ...p,
-        category: p.expand?.categorie_id || null
-    }));
-};
 
-export const createProduct = async (productData) => {
-    return await pb.collection('products').create(productData);
-};
-
-export const updateProduct = async (productId, productData) => {
-    return await pb.collection('products').update(productId, productData);
-};
-
-export const deleteProduct = async (productId) => {
-    await pb.collection('products').delete(productId);
-};
-
-// Categories
-export const fetchCategories = async () => {
-    return await pb.collection('categories').getFullList();
-};
-
-export const createCategory = async (categoryData) => {
-    return await pb.collection('categories').create(categoryData);
-};
-
-export const updateCategory = async (categoryId, categoryData) => {
-    return await pb.collection('categories').update(categoryId, categoryData);
-};
-
-export const deleteCategory = async (categoryId) => {
-    await pb.collection('categories').delete(categoryId);
-};
-
-// Sales
-export const fetchSales = async () => {
-    const sales = await pb.collection('sales').getFullList({ expand: 'product_id', requestKey: null });
-    return sales.map((s) => ({
-        ...s,
-        product: s.expand?.product_id || null,
-    }));
-};
-
-export const createSale = async (saleData) => {
-    return await pb.collection('sales').create(saleData);
-};
-
-export const updateSale = async (saleId, saleData) => {
-    return await pb.collection('sales').update(saleId, saleData);
-};
-
-export const deleteSale = async (saleId) => {
-    await pb.collection('sales').delete(saleId);
-};

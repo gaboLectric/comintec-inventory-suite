@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { Outlet, useLocation } from 'react-router-dom';
 import { SidebarItem } from './SidebarItem';
 import { useAuth } from '../contexts/AuthContext';
+import pb from '../services/pocketbase';
 import { useTheme } from '../comintec-design-system/emotion/ThemeProvider';
 import {
   LayoutDashboard,
@@ -175,9 +176,24 @@ const ContentArea = styled.div`
 // 3 = User (solo ventas y reportes)
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', to: '/', requiredLevel: 3 },
-  { icon: Package, label: 'Productos', to: '/products', requiredLevel: 2 },
-  { icon: ShoppingCart, label: 'Ventas', to: '/sales', requiredLevel: 3 },
-  { icon: FolderOpen, label: 'Categorías', to: '/categories', requiredLevel: 2 },
+  { 
+    icon: Package, 
+    label: 'Almacén', 
+    requiredLevel: 3,
+    submenu: [
+      { label: 'Equipos', to: '/almacen/equipos', requiredLevel: 3 },
+      { label: 'Insumos', to: '/almacen/insumos', requiredLevel: 2 }
+    ]
+  },
+  { 
+    icon: ShoppingCart, 
+    label: 'Salidas', 
+    requiredLevel: 2,
+    submenu: [
+      { label: 'Salidas Equipos', to: '/salidas/equipos', requiredLevel: 2 },
+      { label: 'Salidas Insumos', to: '/salidas/insumos', requiredLevel: 2 }
+    ]
+  },
   { icon: Users, label: 'Usuarios', to: '/users', requiredLevel: 1 },
   { icon: BarChart3, label: 'Reportes', to: '/reports', requiredLevel: 3 },
 ];
@@ -186,6 +202,9 @@ export function Layout() {
   const location = useLocation();
   const { user, logout, hasPermission } = useAuth();
   const { mode, toggleTheme } = useTheme();
+
+  const avatarUrl = user?.avatar ? pb.files.getUrl(user, user.avatar) : null;
+  const displayName = user?.name || user?.username || user?.email || 'Usuario';
 
   const getRoleName = (level) => {
     switch(level) {
@@ -203,15 +222,15 @@ export function Layout() {
   };
 
   const getPageTitle = () => {
-    switch (location.pathname) {
-      case '/': return 'Dashboard';
-      case '/products': return 'Productos';
-      case '/sales': return 'Ventas';
-      case '/categories': return 'Categorías';
-      case '/users': return 'Usuarios';
-      case '/reports': return 'Reportes';
-      default: return 'Dashboard';
-    }
+    const path = location.pathname;
+    if (path === '/') return 'Dashboard';
+    if (path.startsWith('/almacen/equipos')) return 'Equipos';
+    if (path.startsWith('/almacen/insumos')) return 'Insumos';
+    if (path.startsWith('/salidas/equipos')) return 'Salidas de Equipos';
+    if (path.startsWith('/salidas/insumos')) return 'Salidas de Insumos';
+    if (path.startsWith('/users')) return 'Usuarios';
+    if (path.startsWith('/reports')) return 'Reportes';
+    return 'Dashboard';
   };
 
   return (
@@ -221,24 +240,55 @@ export function Layout() {
           <Logo>COMINTEC</Logo>
         </SidebarHeader>
         <SidebarNav>
-          {menuItems
-            .filter(item => hasPermission(item.requiredLevel))
-            .map((item) => (
+          {menuItems.map((item, index) => {
+             if (!hasPermission(item.requiredLevel)) return null;
+             
+             if (item.submenu) {
+                 const visibleSubitems = item.submenu.filter(sub => hasPermission(sub.requiredLevel));
+                 if (visibleSubitems.length === 0) return null;
+                 
+                 return (
+                     <div key={index}>
+                         <div style={{ padding: '12px 16px 4px', fontSize: '11px', fontWeight: 'bold', color: 'var(--font-color-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                             {item.label}
+                         </div>
+                         {visibleSubitems.map(sub => (
+                             <SidebarItem
+                                 key={sub.to}
+                                 icon={item.icon}
+                                 label={sub.label}
+                                 to={sub.to}
+                             />
+                         ))}
+                     </div>
+                 );
+             }
+             
+             return (
               <SidebarItem
                 key={item.to}
                 icon={item.icon}
                 label={item.label}
                 to={item.to}
               />
-            ))}
+            );
+          })}
         </SidebarNav>
         <SidebarFooter>
           <UserInfo>
             <UserAvatar>
-              <UserIcon size={18} />
+              {avatarUrl ? (
+                <img 
+                  src={avatarUrl} 
+                  alt={displayName} 
+                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+                />
+              ) : (
+                <UserIcon size={18} />
+              )}
             </UserAvatar>
             <UserDetails>
-              <UserName>{user?.name || 'Usuario'}</UserName>
+              <UserName>{displayName}</UserName>
               <UserRole>{getRoleName(user?.user_level)}</UserRole>
             </UserDetails>
           </UserInfo>

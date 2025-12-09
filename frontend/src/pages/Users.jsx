@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { fetchUsers, createUser, updateUser, deleteUser } from '../services/api';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import { Modal } from '../components/Modal';
-import { Form, FormRow, FormGroup, Label, Input, Select, ButtonGroup, Button } from '../components/FormComponents';
+import { Form, FormRow, FormGroup, Label, Input, Select, ButtonGroup, ButtonStyled as Button } from '../components/FormComponents';
 
 const PageContainer = styled.div`
   padding: var(--space-6);
@@ -175,22 +175,23 @@ export function Users() {
     }
   };
 
-  const columns = ['ID', 'Nombre', 'Usuario', 'Nivel', 'Estado', 'Acciones'];
-  const data = users.map((u) => [
-    u.id,
-    u.name,
-    u.username,
-    u.kind === 'admin' ? 'Admin (PB)' : (u.user_level === 1 ? 'Admin' : (u.user_level === 2 ? 'Especial' : 'Usuario')),
-    u.status === 1 ? 'Activo' : 'Inactivo',
-    <ActionButtons>
-      <IconButton onClick={() => u.kind !== 'admin' && handleEdit(u)} title={u.kind === 'admin' ? 'No editable' : 'Editar'} disabled={u.kind === 'admin'}>
-        <Edit />
-      </IconButton>
-      <IconButton $variant="danger" onClick={() => u.kind !== 'admin' && handleDelete(u.id)} title={u.kind === 'admin' ? 'No eliminable' : 'Eliminar'} disabled={u.kind === 'admin'}>
-        <Trash2 />
-      </IconButton>
-    </ActionButtons>
-  ]);
+  const columns = [
+      { header: 'ID', accessor: 'id' },
+      { header: 'Nombre', accessor: 'name' },
+      { header: 'Usuario', accessor: 'username' },
+      { header: 'Nivel', render: (u) => u.kind === 'admin' ? 'Admin (PB)' : (u.user_level === 1 ? 'Admin' : (u.user_level === 2 ? 'Especial' : 'Usuario')) },
+      { header: 'Estado', render: (u) => u.status === 1 ? 'Activo' : 'Inactivo' },
+      { header: 'Acciones', render: (u) => (
+          <ActionButtons>
+            <IconButton onClick={() => u.kind !== 'admin' && handleEdit(u)} title={u.kind === 'admin' ? 'No editable' : 'Editar'} disabled={u.kind === 'admin'}>
+              <Edit />
+            </IconButton>
+            <IconButton $variant="danger" onClick={() => u.kind !== 'admin' && handleDelete(u.id)} title={u.kind === 'admin' ? 'No eliminable' : 'Eliminar'} disabled={u.kind === 'admin'}>
+              <Trash2 />
+            </IconButton>
+          </ActionButtons>
+      )}
+  ];
 
   return (
     <PageContainer>
@@ -205,7 +206,7 @@ export function Users() {
       {loading ? (
         <p>Cargando usuarios...</p>
       ) : (
-        <SimpleTable title="" columns={columns} data={data} />
+        <SimpleTable title="" columns={columns} data={users} />
       )}
 
       <Modal
