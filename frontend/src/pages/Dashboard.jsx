@@ -31,7 +31,7 @@ export function Dashboard() {
         setLoading(false);
 
         if (statsData.lowStock > 0 && userLevel <= 2) {
-             addToast(`Atención: ${statsData.lowStock} insumos con bajo stock`, 'warning');
+             addToast(`Atención: ${statsData.lowStock} insumos con bajo stock`, 'warning', { placement: 'top-right', important: true, durationMs: 10000 });
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
-import { Search } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const TableContainer = styled.div`
   background: var(--bg-secondary);
@@ -45,6 +45,7 @@ const Th = styled.th`
   color: var(--font-color-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  width: ${props => props.width || 'auto'};
 `;
 
 const Tbody = styled.tbody``;
@@ -90,7 +91,41 @@ const SearchInput = styled.input`
   }
 `;
 
-export function SimpleTable({ title, columns, data, actions, onSearch }) {
+const PaginationContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--border-color-strong);
+  gap: var(--space-4);
+  color: var(--font-color-secondary);
+  font-size: var(--font-size-sm);
+`;
+
+const PageButton = styled.button`
+  background: none;
+  border: 1px solid var(--border-color-medium);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1);
+  color: var(--font-color-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color-strong);
+  }
+`;
+
+export function SimpleTable({ title, columns, data, actions, onSearch, pagination }) {
     const [searchTerm, setSearchTerm] = useState('');
 
     const handleSearch = (e) => {
@@ -122,7 +157,7 @@ export function SimpleTable({ title, columns, data, actions, onSearch }) {
                     <Thead>
                         <tr>
                             {columns.map((col, idx) => (
-                                <Th key={idx}>{col.header || col}</Th>
+                                <Th key={idx} width={col.width}>{col.header || col}</Th>
                             ))}
                         </tr>
                     </Thead>
@@ -147,6 +182,27 @@ export function SimpleTable({ title, columns, data, actions, onSearch }) {
                     </Tbody>
                 </Table>
             </div>
+            {pagination && (
+                <PaginationContainer>
+                    <span>
+                        Página {pagination.page} de {pagination.totalPages} ({pagination.totalItems} registros)
+                    </span>
+                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                        <PageButton 
+                            onClick={() => pagination.onPageChange(pagination.page - 1)}
+                            disabled={pagination.page <= 1}
+                        >
+                            <ChevronLeft size={16} />
+                        </PageButton>
+                        <PageButton 
+                            onClick={() => pagination.onPageChange(pagination.page + 1)}
+                            disabled={pagination.page >= pagination.totalPages}
+                        >
+                            <ChevronRight size={16} />
+                        </PageButton>
+                    </div>
+                </PaginationContainer>
+            )}
         </TableContainer>
     );
 }

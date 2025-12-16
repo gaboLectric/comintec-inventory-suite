@@ -75,6 +75,31 @@ export const Select = styled.select`
   }
 `;
 
+export const ListBox = styled(Select)`
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE 10+ */
+  &::-webkit-scrollbar { 
+    display: none;  /* Chrome/Safari */
+  }
+  
+  option {
+    padding: var(--space-2);
+    margin-bottom: 2px;
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    
+    &:checked {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    &:hover {
+      background-color: var(--bg-tertiary);
+    }
+  }
+`;
+
 export const ButtonGroup = styled.div`
   display: flex;
   gap: var(--space-3);
@@ -251,14 +276,14 @@ export const EquipmentOutputForm = ({ equipments, onSubmit, onCancel }) => {
             </FormGroup>
             <FormGroup>
                 <Label>Seleccionar Equipo *</Label>
-                <Select value={selectedId} onChange={e => setSelectedId(e.target.value)} required size={5}>
+                <ListBox value={selectedId} onChange={e => setSelectedId(e.target.value)} required size={6}>
                     <option value="" disabled>Seleccione un equipo</option>
                     {filteredEquipments.map(e => (
                         <option key={e.id} value={e.id}>
                             {e.producto} - {e.numero_serie} ({e.marca})
                         </option>
                     ))}
-                </Select>
+                </ListBox>
             </FormGroup>
             <FormGroup>
                 <Label>Nota</Label>
@@ -274,6 +299,7 @@ export const EquipmentOutputForm = ({ equipments, onSubmit, onCancel }) => {
 
 export const SupplyOutputForm = ({ supplies, onSubmit, onCancel }) => {
     const [selectedId, setSelectedId] = useState('');
+    const [cantidad, setCantidad] = useState('');
     const [nota, setNota] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -286,7 +312,7 @@ export const SupplyOutputForm = ({ supplies, onSubmit, onCancel }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (selectedSupply) {
-            onSubmit({ supply: selectedSupply, cantidad: selectedSupply.piezas, nota });
+            onSubmit({ supply: selectedSupply, cantidad: Number(cantidad), nota });
         }
     };
 
@@ -302,19 +328,26 @@ export const SupplyOutputForm = ({ supplies, onSubmit, onCancel }) => {
             </FormGroup>
             <FormGroup>
                 <Label>Seleccionar Insumo *</Label>
-                <Select value={selectedId} onChange={e => setSelectedId(e.target.value)} required size={5}>
+                <ListBox value={selectedId} onChange={e => { setSelectedId(e.target.value); setCantidad(''); }} required size={6}>
                     <option value="" disabled>Seleccione un insumo</option>
                     {filteredSupplies.map(s => (
                         <option key={s.id} value={s.id}>
                             {s.nombre} (Disp: {s.piezas})
                         </option>
                     ))}
-                </Select>
+                </ListBox>
             </FormGroup>
             {selectedSupply && (
                 <FormGroup>
-                    <Label>Stock Actual: {selectedSupply.piezas}</Label>
-                    {/* Cantidad input removed to enforce full withdrawal */}
+                    <Label>Cantidad a retirar (Max: {selectedSupply.piezas}) *</Label>
+                    <Input 
+                        type="number" 
+                        value={cantidad} 
+                        onChange={e => setCantidad(e.target.value)} 
+                        min="1" 
+                        max={selectedSupply.piezas} 
+                        required 
+                    />
                 </FormGroup>
             )}
             <FormGroup>
@@ -323,7 +356,7 @@ export const SupplyOutputForm = ({ supplies, onSubmit, onCancel }) => {
             </FormGroup>
             <ButtonGroup>
                 <ButtonStyled type="button" $variant="secondary" onClick={onCancel}>Cancelar</ButtonStyled>
-                <ButtonStyled type="submit" disabled={!selectedId}>Confirmar Salida</ButtonStyled>
+                <ButtonStyled type="submit" disabled={!selectedId || !cantidad}>Confirmar Salida</ButtonStyled>
             </ButtonGroup>
         </Form>
     );

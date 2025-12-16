@@ -99,23 +99,18 @@ export const createSupplyOutput = async (data) => {
     // We need to fetch supply first to enforce rules
     const supply = await pb.collection('supplies').getOne(data.supply_id);
     
-    // Guard: Prevent negative stock (Comment 3)
+    // Guard: Prevent negative stock
     const newStock = supply.piezas - data.cantidad;
     if (newStock < 0) {
         throw new Error("Stock insuficiente para realizar la salida");
     }
 
-    // Enforce full withdrawal (Comment 2)
-    // We ignore data.cantidad for the update and set stock to 0
-    // But we use data.cantidad for the output record, which should match supply.piezas
-    
     const output = await pb.collection('supply_outputs').create(data);
     
     // 2. Update supply stock
     if (output && data.supply_id) {
         try {
-            // Always set stock to zero (Comment 2)
-            await pb.collection('supplies').update(data.supply_id, { piezas: 0 });
+            await pb.collection('supplies').update(data.supply_id, { piezas: newStock });
         } catch (error) {
             console.error("Error updating supply stock after output:", error);
         }
@@ -165,7 +160,15 @@ export const fetchDashboardStats = async () => {
 };
 
 export const getUserLevel = () => {
-    return pb.authStore.model?.user_level || 3; // Default to User
+    const user = pb.authStore.model;
+    
+    // If it's a superuser (admin), they don't have user_level field
+    // Check collection name or use isSuperuser (new API)
+    if (user && (pb.authStore.record?.collectionName === '_superusers' || pb.authStore.isSuperuser)) {
+        return 1; // Superusers are always Admin level
+    }
+    
+    return user?.user_level || 3; // Default to User
 };
 
 export const canAccessSupplies = () => {
@@ -183,11 +186,41 @@ export const canCreateOutputs = () => {
 
 // Users
 export const fetchUsers = async () => {
-    // Only fetch from 'users' collection (auth collection)
-    // Admins/superusers are managed separately via PocketBase admin UI
+    // Fetch both superusers (admins) and regular users
+    const allUsers = [];
+    
+    try {
+        // Fetch superusers using PocketBase admins API
+        // Note: This only works if logged in as a superuser
+        const superusers = await pb.admins.getFullList();
+        
+        // Map superusers with kind='admin' and adapt structure
+        const mappedSuperusers = superusers.map((admin) => ({
+            id: admin.id,
+            name: admin.email.split('@')[0], // Use email prefix as name
+            username: admin.email,
+            email: admin.email,
+            user_level: 1, // Superusers are always level 1 (Admin)
+            status: 1, // Always active
+            kind: 'admin',
+            created: admin.created,
+            updated: admin.updated,
+            avatar: admin.avatar || null
+        }));
+        
+        allUsers.push(...mappedSuperusers);
+    } catch (error) {
+        // If fetching admins fails (not authorized), continue with regular users only
+        console.warn('Could not fetch admins:', error);
+    }
+    
+    // Fetch regular users from 'users' collection
     const appUsers = await pb.collection('users').getFullList({ requestKey: null });
     const mappedUsers = appUsers.map((u) => ({ ...u, kind: 'user' }));
-    return mappedUsers;
+    
+    allUsers.push(...mappedUsers);
+    
+    return allUsers;
 };
 
 export const createUser = async (userData) => {

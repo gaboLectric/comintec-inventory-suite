@@ -20,7 +20,11 @@ const ModalContainerStyled = styled.div`
   background: var(--bg-secondary);
   border: 1px solid var(--border-color-strong);
   border-radius: var(--radius-md);
-  max-width: ${props => props.$size === 'large' ? '800px' : '500px'};
+  max-width: ${props => {
+    if (props.$size === 'large') return '800px';
+    if (props.$size === 'xl') return '95vw';
+    return '500px';
+  }};
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -33,7 +37,11 @@ const ModalContainer = styled(ModalContainerStyled, {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color-strong);
   border-radius: var(--radius-md);
-  max-width: ${props => props.$size === 'large' ? '800px' : '500px'};
+  max-width: ${props => {
+    if (props.$size === 'large') return '800px';
+    if (props.$size === 'xl') return '95vw';
+    return '500px';
+  }};
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
