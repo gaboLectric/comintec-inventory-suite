@@ -118,7 +118,7 @@ Usar el script `backup-pocketbase.sh` para backups del volumen `pb_data`. Progra
 
 ## Consideraciones de Seguridad
 
-- Cambiar `PB_ENCRYPTION_KEY` por valor seguro aleatorio
+- Cambiar `PB_ENCRYPTION_KEY` por un valor seguro aleatorio (debe tener EXACTAMENTE 32 caracteres). Ejemplo: `openssl rand -hex 16`
 - No exponer puerto 8090 externamente si no es necesario (usar reverse proxy)
 - Configurar firewall en OpenMediaVault para limitar acceso
 - Habilitar HTTPS con reverse proxy (Nginx Proxy Manager o Traefik)

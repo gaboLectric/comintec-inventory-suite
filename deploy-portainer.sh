@@ -27,7 +27,9 @@ echo "✅ All required files present"
 # Generate PB_ENCRYPTION_KEY if not exists
 if ! grep -q "^PB_ENCRYPTION_KEY=" .env.production 2>/dev/null || grep -q "your-32-character-encryption-key-here" .env.production; then
     echo "🔑 Generating new PB_ENCRYPTION_KEY..."
-    NEW_KEY=$(openssl rand -hex 32)
+    # PocketBase requires EXACTLY 32 characters for the encryption key.
+    # Using 16 bytes hex-encoded => 32 hex characters.
+    NEW_KEY=$(openssl rand -hex 16)
     if [ -f .env.production ]; then
         sed -i "s/PB_ENCRYPTION_KEY=.*/PB_ENCRYPTION_KEY=$NEW_KEY/" .env.production
     else
