@@ -127,10 +127,7 @@ export const validateEquipmentData = (rows) => {
   const invalid = [];
   // Removed seenSerials check to allow all data to pass to import stage
 
-  rows.forEach((row, index) => {
-    const errors = [];
-    const rowNum = index + 2;
-
+  rows.forEach((row) => {
     // Fill empty fields with "Sin datos"
     const processedRow = { ...row };
     ['codigo', 'producto', 'marca', 'modelo', 'numero_serie', 'pedimento', 'observaciones'].forEach(field => {
@@ -175,16 +172,25 @@ export const validateEquipmentData = (rows) => {
 };
 
 export const importSupplies = async (validatedData) => {
-  const promises = validatedData.map(async (item) => {
-    try {
-      const record = await pb.collection('supplies').create(item);
-      return { success: true, data: record };
-    } catch (error) {
-      return { success: false, item, error: error.message };
-    }
-  });
-
-  const results = await Promise.all(promises);
+  const BATCH_SIZE = 50; // Process 50 items at a time to avoid overwhelming the database
+  const results = [];
+  
+  // Process in batches
+  for (let i = 0; i < validatedData.length; i += BATCH_SIZE) {
+    const batch = validatedData.slice(i, i + BATCH_SIZE);
+    
+    const batchPromises = batch.map(async (item) => {
+      try {
+        const record = await pb.collection('supplies').create(item);
+        return { success: true, data: record };
+      } catch (error) {
+        return { success: false, item, error: error.message };
+      }
+    });
+    
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+  }
 
   const success = results.filter(r => r.success).map(r => r.data);
   const errors = results.filter(r => !r.success).map(r => ({ item: r.item, error: r.error }));
@@ -193,37 +199,46 @@ export const importSupplies = async (validatedData) => {
 };
 
 export const importEquipments = async (validatedData) => {
-  const promises = validatedData.map(async (item, index) => {
-    try {
-      const dataToSave = { ...item };
-      
-      // If serial is "Sin datos", append a unique suffix to avoid DB unique constraint violation
-      if (dataToSave.numero_serie.startsWith('Sin datos')) {
-        // Use timestamp and random string to ensure uniqueness across imports
-        const uniqueSuffix = `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100000)}`;
-        dataToSave.numero_serie = `Sin datos ${uniqueSuffix}`;
-      }
+  const BATCH_SIZE = 50; // Process 50 items at a time to avoid overwhelming the database
+  const results = [];
+  
+  // Process in batches
+  for (let i = 0; i < validatedData.length; i += BATCH_SIZE) {
+    const batch = validatedData.slice(i, i + BATCH_SIZE);
+    
+    const batchPromises = batch.map(async (item) => {
+      try {
+        const dataToSave = { ...item };
+        
+        // If serial is "Sin datos", append a unique suffix to avoid DB unique constraint violation
+        if (dataToSave.numero_serie.startsWith('Sin datos')) {
+          // Use timestamp and random string to ensure uniqueness across imports
+          const uniqueSuffix = `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100000)}`;
+          dataToSave.numero_serie = `Sin datos ${uniqueSuffix}`;
+        }
 
-      const record = await pb.collection('equipments').create(dataToSave);
-      return { success: true, data: record };
-    } catch (error) {
-      // If error is unique constraint on numero_serie, try to append suffix and retry
-      // This fulfills "import everything" requirement even if duplicates exist
-      if (error.status === 400 && error.response?.data?.numero_serie) {
-         try {
-            const uniqueSuffix = `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100000)}`;
-            const newData = { ...dataToSave, numero_serie: `${dataToSave.numero_serie}_DUP_${uniqueSuffix}` };
-            const record = await pb.collection('equipments').create(newData);
-            return { success: true, data: record };
-         } catch (retryError) {
-            return { success: false, item, error: retryError.message };
-         }
+        const record = await pb.collection('equipments').create(dataToSave);
+        return { success: true, data: record };
+      } catch (error) {
+        // If error is unique constraint on numero_serie, try to append suffix and retry
+        // This fulfills "import everything" requirement even if duplicates exist
+        if (error.status === 400 && error.response?.data?.numero_serie) {
+           try {
+              const uniqueSuffix = `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100000)}`;
+              const newData = { ...item, numero_serie: `${item.numero_serie}_DUP_${uniqueSuffix}` };
+              const record = await pb.collection('equipments').create(newData);
+              return { success: true, data: record };
+           } catch (retryError) {
+              return { success: false, item, error: retryError.message };
+           }
+        }
+        return { success: false, item, error: error.message };
       }
-      return { success: false, item, error: error.message };
-    }
-  });
-
-  const results = await Promise.all(promises);
+    });
+    
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+  }
 
   const success = results.filter(r => r.success).map(r => r.data);
   const errors = results.filter(r => !r.success).map(r => ({ item: r.item, error: r.error }));

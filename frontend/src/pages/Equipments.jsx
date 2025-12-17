@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { SimpleTable } from '../components/SimpleTable';
-import { ButtonStyled } from '../components/FormComponents';
 import { ImageModal } from '../components/Modal';
 import { EquipmentDetailModal } from '../components/EquipmentDetailModal';
 import { EquipmentQRModal } from '../components/EquipmentQRModal';
@@ -93,8 +92,8 @@ export function Equipments() {
         { header: 'Imagen', render: (row) => {
             const mediaRecord = row.expand?.media_id;
             if (mediaRecord && mediaRecord.file) {
-                const thumbUrl = pb.files.getURL(mediaRecord, mediaRecord.file, { thumb: '100x100' });
-                const fullUrl = pb.files.getURL(mediaRecord, mediaRecord.file);
+                const thumbUrl = pb.files.getUrl(mediaRecord, mediaRecord.file, { thumb: '100x100' });
+                const fullUrl = pb.files.getUrl(mediaRecord, mediaRecord.file);
                 
                 return (
                     <img 

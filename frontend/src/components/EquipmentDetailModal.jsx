@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { Modal, ImageModal } from './Modal';
-import { X } from 'lucide-react';
 import pb from '../services/pocketbase';
 
 const DetailRow = styled.div`
@@ -56,7 +55,7 @@ export function EquipmentDetailModal({ isOpen, onClose, equipment }) {
 
   const mediaRecord = equipment.expand?.media_id;
   const imageUrl = mediaRecord && mediaRecord.file 
-    ? pb.files.getURL(mediaRecord, mediaRecord.file) 
+    ? pb.files.getUrl(mediaRecord, mediaRecord.file) 
     : null;
 
   return (

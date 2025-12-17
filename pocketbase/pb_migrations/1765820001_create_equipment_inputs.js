@@ -1,6 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
 migrate((app) => {
-    const equipments = app.findCollectionByNameOrId("equipments");
     const media = app.findCollectionByNameOrId("media");
 
     const collection = new Collection({

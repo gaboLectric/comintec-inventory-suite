@@ -209,7 +209,7 @@ export const getUserLevel = () => {
     
     // If it's a superuser (admin), they don't have user_level field
     // Check collection name or use isSuperuser (new API)
-    if (user && (pb.authStore.record?.collectionName === '_superusers' || pb.authStore.isSuperuser)) {
+    if (user && (user.collectionName === '_superusers' || pb.authStore.isSuperuser)) {
         return 1; // Superusers are always Admin level
     }
     
