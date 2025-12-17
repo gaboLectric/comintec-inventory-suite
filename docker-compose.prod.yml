@@ -7,7 +7,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.pocketbase.prod
-    image: inventario-pocketbase:prod
     container_name: inventario-pocketbase-prod
     restart: unless-stopped
     command: --encryptionEnv=PB_ENCRYPTION_KEY --migrationsDir=/pb_migrations
