@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
-# bun.lockb  # Allow frontend/bun.lockb for reproducible builds
+# Keep Bun lockfile in build context for reproducible frontend builds
+# (this repo uses frontend/bun.lock)
 
 # PocketBase data (local development)
 pocketbase/pb_data/

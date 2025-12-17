@@ -11,7 +11,7 @@ ENV VITE_API_URL=$VITE_API_URL
 WORKDIR /app
 
 # Copy package files
-COPY frontend/package.json frontend/bun.lockb ./
+COPY frontend/package.json frontend/bun.lock ./
 
 # Install dependencies
 RUN bun install --frozen-lockfile
