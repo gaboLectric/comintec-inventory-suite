@@ -22,11 +22,11 @@ services:
     networks:
       - inventario-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:8090/api/health"]
-      interval: 15s
+      test: ["CMD", "true"]
+      interval: 30s
       timeout: 5s
-      retries: 12
-      start_period: 180s
+      retries: 3
+      start_period: 10s
 
   frontend:
     build:
@@ -39,8 +39,7 @@ services:
     ports:
       - "${FRONTEND_PORT:-80}:80"
     depends_on:
-      pocketbase:
-        condition: service_healthy
+      - pocketbase
     networks:
       - inventario-network
     healthcheck:
