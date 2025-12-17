@@ -10,6 +10,10 @@ services:
     command: --encryptionEnv=PB_ENCRYPTION_KEY --migrationsDir=/pb_migrations
     environment:
       - PB_ENCRYPTION_KEY=${PB_ENCRYPTION_KEY}
+      # Optional: auto-create/update PocketBase superuser on container start
+      # Set these in Portainer Environment variables for first-time setup
+      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:-}
+      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:-}
     ports:
       - "${POCKETBASE_PORT:-8090}:8090"
     volumes:

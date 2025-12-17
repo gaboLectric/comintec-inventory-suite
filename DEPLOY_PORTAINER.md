@@ -69,6 +69,8 @@ Verificar que el volumen `pb_data` se cree correctamente. Configurar backup auto
 
 Crear usuario administrador en PocketBase para el primer acceso.
 
+Tip (recomendado): puedes bootstrapear el superusuario automáticamente configurando en Portainer las variables `PB_ADMIN_EMAIL` y `PB_ADMIN_PASSWORD` (el contenedor las “upsert” en cada arranque).
+
 ## Tabla de Puertos y Servicios
 
 | Servicio    | Puerto Interno | Puerto Externo | Protocolo | Descripción          |
