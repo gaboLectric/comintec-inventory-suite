@@ -30,6 +30,7 @@ migrate((app) => {
     addField(new Field({ name: "fecha", type: "date" }));
     addField(new RelationField({
         name: "media_id",
+        type: "relation",
         collectionId: media.id,
         maxSelect: 1
     }));

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import { QRScanner } from './QRScanner';
 import { ConfirmationModal } from './ConfirmationModal';
@@ -202,7 +202,7 @@ export const EquipmentInputForm = ({ onSubmit, onCancel }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit(formData, file);
+        onSubmit({ ...formData, file });
     };
 
     return (
