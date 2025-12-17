@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+# bun.lockb  # Allow frontend/bun.lockb for reproducible builds
+
+# PocketBase data (local development)
+pocketbase/pb_data/
+
+# Archive and legacy code
+_archive/
+legacy-php/
+
+# Git
+.git/
+.gitignore
+
+# Documentation (except deployment guide)
+*.md
+!DEPLOY_PORTAINER.md
+
+# Environment files
+.env*
+!.env.production
+
+# Build artifacts
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.swp
