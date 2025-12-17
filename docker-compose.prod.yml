@@ -12,8 +12,8 @@ services:
       - PB_ENCRYPTION_KEY=${PB_ENCRYPTION_KEY}
       # Optional: auto-create/update PocketBase superuser on container start
       # Set these in Portainer Environment variables for first-time setup
-      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:-}
-      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:-}
+      - PB_ADMIN_EMAIL=${almacen_gdl@comintec.com.mx:-}
+      - PB_ADMIN_PASSWORD=${Comintec#2025#:-}
     ports:
       - "${POCKETBASE_PORT:-8090}:8090"
     volumes:
