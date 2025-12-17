@@ -30,6 +30,10 @@ services:
     ports:
       - "5173:5173"
     volumes:
+      # Note: we intentionally mount the entire frontend source tree into /app without
+      # a separate node_modules volume. Dependencies are expected to be installed
+      # directly into the mounted directory (e.g. via Bun or a similar tool), so
+      # we do not exclude node_modules from this volume mapping.
       - ./frontend:/app
     environment:
       - VITE_API_URL=http://localhost:8090

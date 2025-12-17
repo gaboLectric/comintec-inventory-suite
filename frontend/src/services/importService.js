@@ -127,10 +127,7 @@ export const validateEquipmentData = (rows) => {
   const invalid = [];
   // Removed seenSerials check to allow all data to pass to import stage
 
-  rows.forEach((row, index) => {
-    const errors = [];
-    const rowNum = index + 2;
-
+  rows.forEach((row) => {
     // Fill empty fields with "Sin datos"
     const processedRow = { ...row };
     ['codigo', 'producto', 'marca', 'modelo', 'numero_serie', 'pedimento', 'observaciones'].forEach(field => {
@@ -194,9 +191,9 @@ export const importSupplies = async (validatedData) => {
 
 export const importEquipments = async (validatedData) => {
   const promises = validatedData.map(async (item, index) => {
+    const dataToSave = { ...item };
+    
     try {
-      const dataToSave = { ...item };
-      
       // If serial is "Sin datos", append a unique suffix to avoid DB unique constraint violation
       if (dataToSave.numero_serie.startsWith('Sin datos')) {
         // Use timestamp and random string to ensure uniqueness across imports
@@ -212,7 +209,7 @@ export const importEquipments = async (validatedData) => {
       if (error.status === 400 && error.response?.data?.numero_serie) {
          try {
             const uniqueSuffix = `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100000)}`;
-            const newData = { ...dataToSave, numero_serie: `${dataToSave.numero_serie}_DUP_${uniqueSuffix}` };
+            const newData = { ...item, numero_serie: `${item.numero_serie}_DUP_${uniqueSuffix}` };
             const record = await pb.collection('equipments').create(newData);
             return { success: true, data: record };
          } catch (retryError) {

@@ -83,7 +83,6 @@ const ProgressBar = styled.div`
 
 export function ImportModal({ isOpen, onClose, type, onImportComplete }) {
   const [step, setStep] = useState('upload'); // upload, preview, importing, results
-  const [file, setFile] = useState(null);
   const [parsedData, setParsedData] = useState([]);
   const [validationResults, setValidationResults] = useState({ valid: [], invalid: [] });
   const [importResults, setImportResults] = useState({ success: [], errors: [] });

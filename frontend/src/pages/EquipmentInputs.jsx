@@ -11,7 +11,6 @@ export function EquipmentInputs() {
     const [inputs, setInputs] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [showAllHistory, setShowAllHistory] = useState(false);
@@ -37,7 +36,6 @@ export function EquipmentInputs() {
             setInputs(result.items);
             setPage(result.page);
             setTotalPages(result.totalPages);
-            setTotalItems(result.totalItems);
         } catch (error) {
             console.error(error);
             addToast('Error al cargar entradas', 'error');
@@ -70,7 +68,24 @@ export function EquipmentInputs() {
 
     const handleCreate = async (data) => {
         try {
-            await createEquipmentInput(data);
+            let mediaId = null;
+            
+            // If there's a file, upload it first
+            if (data.file) {
+                const formData = new FormData();
+                formData.append('file', data.file);
+                const mediaRecord = await pb.collection('media').create(formData);
+                mediaId = mediaRecord.id;
+            }
+            
+            // Create the equipment input with media_id if file was uploaded
+            const inputData = { ...data };
+            delete inputData.file; // Remove file from data
+            if (mediaId) {
+                inputData.media_id = mediaId;
+            }
+            
+            await createEquipmentInput(inputData);
             addToast('Entrada registrada y equipo creado exitosamente', 'success');
             setIsModalOpen(false);
             loadInputs(1); // Reload to first page to see new entry
