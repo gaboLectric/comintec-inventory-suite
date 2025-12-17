@@ -1,0 +1,55 @@
+version: '3.8'
+
+name: inventario-mod
+
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: inventario-pocketbase-prod
+    restart: unless-stopped
+    command: --encryptionEnv=PB_ENCRYPTION_KEY --migrationsDir=/pb_migrations
+    environment:
+      - PB_ENCRYPTION_KEY=${PB_ENCRYPTION_KEY}
+    ports:
+      - "${POCKETBASE_PORT:-8090}:8090"
+    volumes:
+      - pb_data:/pb_data
+      - ./pocketbase/pb_migrations:/pb_migrations:ro
+    networks:
+      - inventario-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.prod
+      args:
+        - VITE_API_URL=${VITE_API_URL:-/api}
+    container_name: inventario-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    networks:
+      - inventario-network
+    healthcheck:
+      test: ["CMD", "/bin/sh", "/docker/frontend-healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  pb_data:
+    driver: local
+
+networks:
+  inventario-network:
+    driver: bridge
