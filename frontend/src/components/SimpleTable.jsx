@@ -118,7 +118,7 @@ const PageButton = styled.button`
   }
 `;
 
-export function SimpleTable({ title, columns, data, actions, onSearch, pagination, rowStyle }) {
+export function SimpleTable({ title, columns, data, actions, onSearch, pagination = {}, rowStyle }) {
     const [searchTerm, setSearchTerm] = useState('');
 
     const handleSearch = (e) => {

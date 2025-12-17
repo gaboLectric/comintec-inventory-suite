@@ -11,7 +11,6 @@ export function EquipmentInputs() {
     const [inputs, setInputs] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [showAllHistory, setShowAllHistory] = useState(false);
@@ -68,9 +67,22 @@ export function EquipmentInputs() {
         };
     }, [page, searchTerm, showAllHistory]);
 
-    const handleCreate = async (data) => {
+    const handleCreate = async (data, file) => {
         try {
-            await createEquipmentInput(data);
+            let media_id = null;
+            
+            // Upload file first if provided
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                const mediaRecord = await pb.collection('media').create(formData);
+                media_id = mediaRecord.id;
+            }
+            
+            // Add media_id to data
+            const dataWithMedia = { ...data, media_id };
+            
+            await createEquipmentInput(dataWithMedia);
             addToast('Entrada registrada y equipo creado exitosamente', 'success');
             setIsModalOpen(false);
             loadInputs(1); // Reload to first page to see new entry

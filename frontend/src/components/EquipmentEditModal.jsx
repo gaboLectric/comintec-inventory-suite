@@ -3,7 +3,6 @@ import { Modal } from './Modal';
 import { Form, FormRow, FormGroup, Label, Input, ButtonStyled } from './FormComponents';
 import { updateEquipment } from '../services/api';
 import { useToast } from './Toast';
-import pb from '../services/pocketbase';
 
 export function EquipmentEditModal({ isOpen, onClose, equipment, onUpdate }) {
     const [formData, setFormData] = useState({
