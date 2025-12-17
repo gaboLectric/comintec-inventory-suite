@@ -11,6 +11,7 @@ import { ToastProvider } from './components/Toast';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Equipments } from './pages/Equipments';
+import { EquipmentInputs } from './pages/EquipmentInputs';
 import { Supplies } from './pages/Supplies';
 import { EquipmentOutputs } from './pages/EquipmentOutputs';
 import { SupplyOutputs } from './pages/SupplyOutputs';
@@ -28,6 +29,11 @@ function AppRoutes() {
                 </ProtectedRoute>
             }>
                 <Route index element={<Dashboard />} />
+                <Route path="almacen/entradas" element={
+                    <ProtectedRoute requiredLevel={2}>
+                        <EquipmentInputs />
+                    </ProtectedRoute>
+                } />
                 <Route path="almacen/equipos" element={<Equipments />} />
                 <Route path="almacen/insumos" element={
                     <ProtectedRoute requiredLevel={2}>
@@ -62,7 +68,7 @@ function App() {
         <ThemeProvider>
             <ToastProvider>
                 <AuthProvider>
-                    <BrowserRouter>
+                    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                         <AppRoutes />
                     </BrowserRouter>
                 </AuthProvider>

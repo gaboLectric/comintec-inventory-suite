@@ -11,20 +11,6 @@ const PageContainer = styled.div`
   padding: var(--space-6);
 `;
 
-const PageHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-6);
-`;
-
-const Title = styled.h2`
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--font-color-primary);
-  margin: 0;
-`;
-
 const AddButton = styled.button`
   display: flex;
   align-items: center;
@@ -211,18 +197,20 @@ export function Users() {
 
   return (
     <PageContainer>
-      <PageHeader>
-        <Title>Gestión de Usuarios</Title>
-        <AddButton onClick={handleAdd}>
-          <Plus />
-          Agregar Usuario
-        </AddButton>
-      </PageHeader>
-
       {loading ? (
         <p>Cargando usuarios...</p>
       ) : (
-        <SimpleTable title="" columns={columns} data={users} />
+        <SimpleTable 
+            title="" 
+            columns={columns} 
+            data={users} 
+            actions={
+                <AddButton onClick={handleAdd}>
+                  <Plus />
+                  Agregar Usuario
+                </AddButton>
+            }
+        />
       )}
 
       <Modal

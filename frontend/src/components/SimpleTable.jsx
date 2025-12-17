@@ -20,13 +20,6 @@ const TableHeader = styled.div`
   gap: var(--space-3);
 `;
 
-const TableTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--font-color-primary);
-  margin: 0;
-`;
-
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -125,7 +118,7 @@ const PageButton = styled.button`
   }
 `;
 
-export function SimpleTable({ title, columns, data, actions, onSearch, pagination }) {
+export function SimpleTable({ title, columns, data, actions, onSearch, pagination, rowStyle }) {
     const [searchTerm, setSearchTerm] = useState('');
 
     const handleSearch = (e) => {
@@ -137,8 +130,8 @@ export function SimpleTable({ title, columns, data, actions, onSearch, paginatio
     return (
         <TableContainer>
             <TableHeader>
-                <TableTitle>{title}</TableTitle>
-                <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                {/* Title removed as per request */}
+                <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flex: 1 }}>
                     {onSearch && (
                         <SearchContainer>
                             <Search size={16} color="var(--font-color-secondary)" />
@@ -164,7 +157,7 @@ export function SimpleTable({ title, columns, data, actions, onSearch, paginatio
                     <Tbody>
                         {data && data.length > 0 ? (
                             data.map((row, rowIdx) => (
-                                <Tr key={row.id || rowIdx}>
+                                <Tr key={row.id || rowIdx} style={rowStyle ? rowStyle(row) : {}}>
                                     {columns.map((col, cellIdx) => (
                                         <Td key={cellIdx}>
                                             {col.render ? col.render(row) : (col.accessor ? row[col.accessor] : row[cellIdx])}

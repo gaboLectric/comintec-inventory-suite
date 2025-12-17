@@ -73,15 +73,60 @@ export const createEquipmentOutput = async (data) => {
     // data should include equipment object details + output details
     const output = await pb.collection('equipment_outputs').create(data);
     
-    // If successful, delete the equipment
-    if (output && data.equipment_id) {
+    // Update the equipment to mark it as sold (vendido = true)
+    if (data.equipment_id) {
         try {
-            await pb.collection('equipments').delete(data.equipment_id);
+            await pb.collection('equipments').update(data.equipment_id, { vendido: true });
         } catch (error) {
-            console.error("Error deleting equipment after output:", error);
+            console.error("Error updating equipment status:", error);
+            // We don't throw here to avoid rolling back the output creation if possible,
+            // but ideally this should be transactional.
         }
     }
+    
     return output;
+};
+
+// --- Inputs ---
+
+export const getEquipmentInputs = async (page = 1, perPage = 50, filter = '') => {
+    const options = {
+        sort: '-fecha',
+        requestKey: null
+    };
+    if (filter) options.filter = filter;
+
+    return await pb.collection('equipment_inputs').getList(page, perPage, options);
+};
+
+export const createEquipmentInput = async (data) => {
+    // 1. Create input record
+    const input = await pb.collection('equipment_inputs').create(data);
+    
+    // 2. Create equipment record automatically
+    // We copy relevant fields from the input data
+    const equipmentData = {
+        codigo: data.codigo,
+        producto: data.producto,
+        marca: data.marca,
+        modelo: data.modelo,
+        numero_serie: data.numero_serie,
+        pedimento: data.pedimento,
+        observaciones: data.observaciones,
+        media_id: data.media_id,
+        vendido: data.vendido || false
+    };
+    
+    try {
+        await pb.collection('equipments').create(equipmentData);
+    } catch (error) {
+        console.error("Error creating equipment from input:", error);
+        // We might want to handle this error, but for now we return the input record
+        // Ideally, this should be a transaction or handled more robustly
+        throw new Error("Error al crear el equipo en inventario: " + error.message);
+    }
+    
+    return input;
 };
 
 export const getSupplyOutputs = async (page = 1, perPage = 50, filter = '') => {
@@ -190,25 +235,27 @@ export const fetchUsers = async () => {
     const allUsers = [];
     
     try {
-        // Fetch superusers using PocketBase admins API
-        // Note: This only works if logged in as a superuser
-        const superusers = await pb.admins.getFullList();
-        
-        // Map superusers with kind='admin' and adapt structure
-        const mappedSuperusers = superusers.map((admin) => ({
-            id: admin.id,
-            name: admin.email.split('@')[0], // Use email prefix as name
-            username: admin.email,
-            email: admin.email,
-            user_level: 1, // Superusers are always level 1 (Admin)
-            status: 1, // Always active
-            kind: 'admin',
-            created: admin.created,
-            updated: admin.updated,
-            avatar: admin.avatar || null
-        }));
-        
-        allUsers.push(...mappedSuperusers);
+        // Only try to fetch admins if the current user is a superuser
+        if (pb.authStore.isSuperuser) {
+            // Fetch superusers using PocketBase admins API
+            const superusers = await pb.admins.getFullList();
+            
+            // Map superusers with kind='admin' and adapt structure
+            const mappedSuperusers = superusers.map((admin) => ({
+                id: admin.id,
+                name: admin.email.split('@')[0], // Use email prefix as name
+                username: admin.email,
+                email: admin.email,
+                user_level: 1, // Superusers are always level 1 (Admin)
+                status: 1, // Always active
+                kind: 'admin',
+                created: admin.created,
+                updated: admin.updated,
+                avatar: admin.avatar || null
+            }));
+            
+            allUsers.push(...mappedSuperusers);
+        }
     } catch (error) {
         // If fetching admins fails (not authorized), continue with regular users only
         console.warn('Could not fetch admins:', error);
