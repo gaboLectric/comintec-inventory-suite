@@ -1,0 +1,11 @@
+# Dockerfile for PocketBase in production
+# Copies migration files into the image so they don't need bind mounts
+FROM ghcr.io/muchobien/pocketbase:latest
+
+# Copy migration files into the image
+COPY pocketbase/pb_migrations /pb_migrations
+
+# Expose the default PocketBase port
+EXPOSE 8090
+
+# The base image already has CMD configured to run PocketBase
