@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for production frontend build
 # Stage 1: Build the application
-FROM oven/bun:1 AS build
+FROM node:20-alpine AS build
 
 # Accept build arguments
 ARG VITE_API_URL
@@ -11,16 +11,16 @@ ENV VITE_API_URL=$VITE_API_URL
 WORKDIR /app
 
 # Copy package files
-COPY frontend/package.json frontend/bun.lock ./
+COPY frontend/package.json frontend/package-lock.json ./
 
-# Install dependencies
-RUN bun install --frozen-lockfile
+# Install dependencies (reproducible)
+RUN npm ci --no-audit --no-fund
 
 # Copy source code
 COPY frontend/ ./
 
 # Build the application
-RUN bun run build
+RUN npm run build
 
 # Stage 2: Production server
 FROM nginx:alpine

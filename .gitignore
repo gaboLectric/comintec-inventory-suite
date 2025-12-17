@@ -24,8 +24,8 @@ frontend/dist/
 frontend/.vite/
 
 # Package lock files (solo usamos Bun)
-package-lock.json
-frontend/package-lock.json
+/package-lock.json
+## frontend/package-lock.json is tracked for production Docker builds (npm ci)
 
 # Environment files
 .env
