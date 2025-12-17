@@ -1,27 +1,14 @@
 import styled from '@emotion/styled';
 import { SimpleTable } from '../components/SimpleTable';
 import { useEffect, useState } from 'react';
-import { fetchUsers, createUser, updateUser, deleteUser } from '../services/api';
+import { fetchUsers, createUser, updateUser, deleteUser, getUserLevel } from '../services/api';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import { Modal } from '../components/Modal';
 import { Form, FormRow, FormGroup, Label, Input, Select, ButtonGroup, ButtonStyled as Button } from '../components/FormComponents';
+import { useNavigate } from 'react-router-dom';
 
 const PageContainer = styled.div`
   padding: var(--space-6);
-`;
-
-const PageHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-6);
-`;
-
-const Title = styled.h2`
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--font-color-primary);
-  margin: 0;
 `;
 
 const AddButton = styled.button`
@@ -104,17 +91,25 @@ const IconButton = styled(IconButtonStyled, {
 `;
 
 export function Users() {
+  const navigate = useNavigate();
+  const userLevel = getUserLevel();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    username: '',
+    email: '',
     password: '',
-    user_level: '3',
-    status: '1'
+    user_level: '3'
   });
+
+  // Redirect if user is not Admin or Special
+  useEffect(() => {
+    if (userLevel > 2) {
+      navigate('/dashboard');
+    }
+  }, [userLevel, navigate]);
 
   const loadUsers = () => {
     fetchUsers()
@@ -133,7 +128,7 @@ export function Users() {
 
   const handleAdd = () => {
     setEditingUser(null);
-    setFormData({ name: '', username: '', password: '', user_level: '3', status: '1' });
+    setFormData({ name: '', email: '', password: '', user_level: '3' });
     setIsModalOpen(true);
   };
 
@@ -141,14 +136,12 @@ export function Users() {
     setEditingUser(user);
     setFormData({
       name: user.name,
-      username: user.username,
+      email: user.email || '',
       password: '', // Password is not populated for security
-      user_level: user.user_level,
-      status: user.status
+      user_level: user.user_level
     });
     setIsModalOpen(true);
   };
-
   const handleDelete = (id) => {
     if (confirm('¿Estás seguro de eliminar este usuario?')) {
       deleteUser(id).then(() => loadUsers());
@@ -158,27 +151,36 @@ export function Users() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const dataToSend = { ...formData };
+      
+      // PocketBase requires passwordConfirm
+      if (dataToSend.password) {
+        dataToSend.passwordConfirm = dataToSend.password;
+      } else {
+        delete dataToSend.password;
+      }
+
+      // Ensure user_level is a number
+      dataToSend.user_level = parseInt(dataToSend.user_level);
+
       if (editingUser) {
-        // If password is empty, don't send it (backend should handle this)
-        const dataToSend = { ...formData };
-        if (!dataToSend.password) delete dataToSend.password;
-        
         await updateUser(editingUser.id, dataToSend);
       } else {
-        await createUser(formData);
+        await createUser(dataToSend);
       }
       setIsModalOpen(false);
       loadUsers();
     } catch (error) {
       console.error('Error saving user:', error);
-      alert('Error al guardar usuario. Verifica los datos.');
+      if (error.data) console.error('Validation errors:', error.data);
+      alert(`Error al guardar usuario: ${error.message}`);
     }
   };
 
   const columns = [
       { header: 'ID', accessor: 'id' },
       { header: 'Nombre', accessor: 'name' },
-      { header: 'Usuario', accessor: 'username' },
+      { header: 'Email', accessor: 'email' },
       { header: 'Nivel', render: (u) => u.kind === 'admin' ? 'Admin (PB)' : (u.user_level === 1 ? 'Admin' : (u.user_level === 2 ? 'Especial' : 'Usuario')) },
       { header: 'Estado', render: (u) => u.status === 1 ? 'Activo' : 'Inactivo' },
       { header: 'Acciones', render: (u) => (
@@ -195,18 +197,20 @@ export function Users() {
 
   return (
     <PageContainer>
-      <PageHeader>
-        <Title>Gestión de Usuarios</Title>
-        <AddButton onClick={handleAdd}>
-          <Plus />
-          Agregar Usuario
-        </AddButton>
-      </PageHeader>
-
       {loading ? (
         <p>Cargando usuarios...</p>
       ) : (
-        <SimpleTable title="" columns={columns} data={users} />
+        <SimpleTable 
+            title="" 
+            columns={columns} 
+            data={users} 
+            actions={
+                <AddButton onClick={handleAdd}>
+                  <Plus />
+                  Agregar Usuario
+                </AddButton>
+            }
+        />
       )}
 
       <Modal
@@ -226,11 +230,11 @@ export function Users() {
           </FormGroup>
 
           <FormGroup>
-            <Label>Usuario</Label>
+            <Label>Email</Label>
             <Input
-              type="text"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
             />
           </FormGroup>
@@ -245,27 +249,16 @@ export function Users() {
             />
           </FormGroup>
 
-          <FormRow $columns="1fr 1fr">
+          <FormRow $columns="1fr">
             <FormGroup>
               <Label>Nivel de Usuario</Label>
               <Select
                 value={formData.user_level}
-                onChange={(e) => setFormData({ ...formData, user_level: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, user_level: e.target.value })}
               >
                 <option value="1">Administrador</option>
                 <option value="2">Especial</option>
                 <option value="3">Usuario</option>
-              </Select>
-            </FormGroup>
-
-            <FormGroup>
-              <Label>Estado</Label>
-              <Select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: parseInt(e.target.value) })}
-              >
-                <option value="1">Activo</option>
-                <option value="0">Inactivo</option>
               </Select>
             </FormGroup>
           </FormRow>

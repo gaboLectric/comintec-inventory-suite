@@ -20,7 +20,7 @@ vi.mock('./pocketbase', () => ({
         authStore: {
             isSuperuser: false,
             isAdmin: false,
-            model: { id: 'user1' }
+            model: { id: 'user1', user_level: 1 }
         }
     }
 }));

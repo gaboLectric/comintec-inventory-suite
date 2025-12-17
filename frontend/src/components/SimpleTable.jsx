@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
-import { Search } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const TableContainer = styled.div`
   background: var(--bg-secondary);
@@ -18,13 +18,6 @@ const TableHeader = styled.div`
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-3);
-`;
-
-const TableTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--font-color-primary);
-  margin: 0;
 `;
 
 const Table = styled.table`
@@ -45,6 +38,7 @@ const Th = styled.th`
   color: var(--font-color-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  width: ${props => props.width || 'auto'};
 `;
 
 const Tbody = styled.tbody``;
@@ -90,7 +84,41 @@ const SearchInput = styled.input`
   }
 `;
 
-export function SimpleTable({ title, columns, data, actions, onSearch }) {
+const PaginationContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--border-color-strong);
+  gap: var(--space-4);
+  color: var(--font-color-secondary);
+  font-size: var(--font-size-sm);
+`;
+
+const PageButton = styled.button`
+  background: none;
+  border: 1px solid var(--border-color-medium);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1);
+  color: var(--font-color-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color-strong);
+  }
+`;
+
+export function SimpleTable({ title, columns, data, actions, onSearch, pagination = {}, rowStyle }) {
     const [searchTerm, setSearchTerm] = useState('');
 
     const handleSearch = (e) => {
@@ -102,8 +130,8 @@ export function SimpleTable({ title, columns, data, actions, onSearch }) {
     return (
         <TableContainer>
             <TableHeader>
-                <TableTitle>{title}</TableTitle>
-                <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                {/* Title removed as per request */}
+                <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flex: 1 }}>
                     {onSearch && (
                         <SearchContainer>
                             <Search size={16} color="var(--font-color-secondary)" />
@@ -122,14 +150,14 @@ export function SimpleTable({ title, columns, data, actions, onSearch }) {
                     <Thead>
                         <tr>
                             {columns.map((col, idx) => (
-                                <Th key={idx}>{col.header || col}</Th>
+                                <Th key={idx} width={col.width}>{col.header || col}</Th>
                             ))}
                         </tr>
                     </Thead>
                     <Tbody>
                         {data && data.length > 0 ? (
                             data.map((row, rowIdx) => (
-                                <Tr key={row.id || rowIdx}>
+                                <Tr key={row.id || rowIdx} style={rowStyle ? rowStyle(row) : {}}>
                                     {columns.map((col, cellIdx) => (
                                         <Td key={cellIdx}>
                                             {col.render ? col.render(row) : (col.accessor ? row[col.accessor] : row[cellIdx])}
@@ -147,6 +175,27 @@ export function SimpleTable({ title, columns, data, actions, onSearch }) {
                     </Tbody>
                 </Table>
             </div>
+            {pagination && (
+                <PaginationContainer>
+                    <span>
+                        Página {pagination.page} de {pagination.totalPages} ({pagination.totalItems} registros)
+                    </span>
+                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                        <PageButton 
+                            onClick={() => pagination.onPageChange(pagination.page - 1)}
+                            disabled={pagination.page <= 1}
+                        >
+                            <ChevronLeft size={16} />
+                        </PageButton>
+                        <PageButton 
+                            onClick={() => pagination.onPageChange(pagination.page + 1)}
+                            disabled={pagination.page >= pagination.totalPages}
+                        >
+                            <ChevronRight size={16} />
+                        </PageButton>
+                    </div>
+                </PaginationContainer>
+            )}
         </TableContainer>
     );
 }

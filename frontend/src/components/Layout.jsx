@@ -7,6 +7,7 @@ import { useTheme } from '../comintec-design-system/emotion/ThemeProvider';
 import {
   LayoutDashboard,
   Package,
+  PackagePlus,
   ShoppingCart,
   FolderOpen,
   Users,
@@ -177,6 +178,14 @@ const ContentArea = styled.div`
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', to: '/', requiredLevel: 3 },
   { 
+    icon: PackagePlus, 
+    label: 'Entradas', 
+    requiredLevel: 2,
+    submenu: [
+      { label: 'Entradas Equipos', to: '/almacen/entradas', requiredLevel: 2 }
+    ]
+  },
+  { 
     icon: Package, 
     label: 'Almacén', 
     requiredLevel: 3,
@@ -224,6 +233,7 @@ export function Layout() {
   const getPageTitle = () => {
     const path = location.pathname;
     if (path === '/') return 'Dashboard';
+    if (path.startsWith('/almacen/entradas')) return 'Entradas de Equipos';
     if (path.startsWith('/almacen/equipos')) return 'Equipos';
     if (path.startsWith('/almacen/insumos')) return 'Insumos';
     if (path.startsWith('/salidas/equipos')) return 'Salidas de Equipos';

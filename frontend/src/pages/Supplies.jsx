@@ -2,26 +2,66 @@ import React, { useState, useEffect } from 'react';
 import { SimpleTable } from '../components/SimpleTable';
 import { SupplyForm, ButtonStyled } from '../components/FormComponents';
 import { Modal } from '../components/Modal';
+import { ImportModal } from '../components/ImportModal';
 import { useToast } from '../components/Toast';
 import { getSupplies, createSupply, updateSupply, deleteSupply, getUserLevel, checkLowStock } from '../services/api';
 import pb from '../services/pocketbase';
-import { Edit, Trash2, AlertTriangle } from 'lucide-react';
+import { Edit, Trash2, AlertTriangle, Upload } from 'lucide-react';
 
 export function Supplies() {
     const [supplies, setSupplies] = useState([]);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const [currentFilter, setCurrentFilter] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [editingSupply, setEditingSupply] = useState(null);
     const { addToast } = useToast();
     const userLevel = getUserLevel();
     const canEdit = userLevel <= 2;
+    const isAdmin = userLevel === 1;
 
-    const loadSupplies = async (filter = '') => {
+    const loadSupplies = async (pageToLoad = 1, filter = '') => {
         try {
-            const result = await getSupplies(1, 100, filter);
+            const result = await getSupplies(pageToLoad, 50, filter);
             setSupplies(result.items);
+            setPage(result.page);
+            setTotalPages(result.totalPages);
+            setTotalItems(result.totalItems);
         } catch (error) {
             console.error(error);
             addToast('Error al cargar insumos', 'error');
+        }
+    };
+
+    const handleSubmit = async (data) => {
+        try {
+            if (editingSupply) {
+                await updateSupply(editingSupply.id, data);
+                addToast('Insumo actualizado', 'success');
+            } else {
+                await createSupply(data);
+                addToast('Insumo creado', 'success');
+            }
+            setIsModalOpen(false);
+            setEditingSupply(null);
+            loadSupplies(page, currentFilter);
+        } catch (error) {
+            console.error(error);
+            addToast('Error al guardar insumo: ' + error.message, 'error');
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (confirm('¿Estás seguro de eliminar este insumo?')) {
+            try {
+                await deleteSupply(id);
+                addToast('Insumo eliminado', 'success');
+                loadSupplies(page, currentFilter);
+            } catch (error) {
+                addToast('Error al eliminar insumo', 'error');
+            }
         }
     };
 
@@ -31,7 +71,7 @@ export function Supplies() {
         const subscribe = async () => {
             try {
                 unsubscribe = await pb.collection('supplies').subscribe('*', () => {
-                    loadSupplies();
+                    loadSupplies(page, currentFilter);
                 });
             } catch (err) {
                 console.warn('Realtime subscribe failed:', err);
@@ -42,7 +82,7 @@ export function Supplies() {
         
         checkLowStock().then(low => {
             if (low.length > 0) {
-                addToast(`Atención: ${low.length} insumos con bajo stock`, 'warning');
+                addToast(`Atención: ${low.length} insumos con bajo stock`, 'warning', { placement: 'top-right', important: true, durationMs: 10000 });
             }
         });
 
@@ -64,38 +104,16 @@ export function Supplies() {
 
     const handleSearch = (term) => {
         const filter = term ? `nombre ~ "${term}"` : '';
-        loadSupplies(filter);
+        setCurrentFilter(filter);
+        setPage(1);
+        loadSupplies(1, filter);
     };
 
-    const handleSubmit = async (data) => {
-        try {
-            if (editingSupply) {
-                await updateSupply(editingSupply.id, data);
-                addToast('Insumo actualizado', 'success');
-            } else {
-                await createSupply(data);
-                addToast('Insumo creado', 'success');
-            }
-            setIsModalOpen(false);
-            setEditingSupply(null);
-            loadSupplies();
-        } catch (error) {
-            console.error(error);
-            addToast('Error al guardar insumo: ' + error.message, 'error');
-        }
+    const handlePageChange = (newPage) => {
+        loadSupplies(newPage, currentFilter);
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('¿Estás seguro de eliminar este insumo?')) {
-            try {
-                await deleteSupply(id);
-                addToast('Insumo eliminado', 'success');
-                loadSupplies();
-            } catch (error) {
-                addToast('Error al eliminar insumo', 'error');
-            }
-        }
-    };
+
 
     const columns = [
         { header: 'Nombre', accessor: 'nombre' },
@@ -132,11 +150,24 @@ export function Supplies() {
                 columns={columns} 
                 data={supplies} 
                 onSearch={handleSearch}
+                pagination={{
+                    page,
+                    totalPages,
+                    totalItems,
+                    onPageChange: handlePageChange
+                }}
                 actions={
                     canEdit && (
-                        <ButtonStyled onClick={() => { setEditingSupply(null); setIsModalOpen(true); }}>
-                            Agregar Insumo
-                        </ButtonStyled>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                            {isAdmin && (
+                                <ButtonStyled onClick={() => setIsImportModalOpen(true)} $variant="secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <Upload size={16} /> Importar desde Excel
+                                </ButtonStyled>
+                            )}
+                            <ButtonStyled onClick={() => { setEditingSupply(null); setIsModalOpen(true); }}>
+                                Agregar Insumo
+                            </ButtonStyled>
+                        </div>
                     )
                 }
             />
@@ -152,6 +183,13 @@ export function Supplies() {
                     onCancel={() => setIsModalOpen(false)} 
                 />
             </Modal>
+
+            <ImportModal 
+                isOpen={isImportModalOpen} 
+                onClose={() => setIsImportModalOpen(false)} 
+                type="supplies" 
+                onImportComplete={() => loadSupplies(1, currentFilter)} 
+            />
         </div>
     );
 }

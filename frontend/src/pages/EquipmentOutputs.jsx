@@ -40,7 +40,9 @@ export function EquipmentOutputs() {
 
     const loadEquipments = async () => {
         try {
-            const result = await getEquipments(1, 500);
+            // Fetch ALL equipments to handle validation in the form
+            // This allows us to tell the user if an item is already sold vs not found
+            const result = await getEquipments(1, 2000);
             setEquipments(result.items);
         } catch (error) {
             console.error(error);

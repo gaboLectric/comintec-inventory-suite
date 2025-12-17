@@ -103,11 +103,10 @@ export function SupplyOutputs() {
 
     const handleSubmit = async ({ supply, cantidad, nota }) => {
         try {
-            // cantidad is now implicitly the full stock from the form
             const outputData = {
                 supply_id: supply.id,
                 nombre: supply.nombre,
-                cantidad: Number(cantidad), // This will be the full supply.piezas
+                cantidad: Number(cantidad),
                 nota: nota,
                 fecha: new Date().toISOString()
             };
