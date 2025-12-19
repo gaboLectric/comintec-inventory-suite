@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import pb from '../services/pocketbase';
 import { getErrorMessage } from '../utils/errorHandler';
+import { useToast } from '../components/Toast';
 
 const AuthContext = createContext(null);
 
@@ -15,17 +16,57 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(pb.authStore.model);
     const [loading, setLoading] = useState(false);
+    const toast = useToast();
+
+    const enforceAuthValidity = useCallback((options = {}) => {
+        const shouldNotify = Boolean(options?.notify);
+
+        // If token expired but model is still present, force logout.
+        if (pb.authStore.model && !pb.authStore.isValid) {
+            pb.authStore.clear();
+            setUser(null);
+
+            if (shouldNotify && toast?.addToast) {
+                toast.addToast('Tu sesión expiró. Inicia sesión nuevamente.', 'warning', {
+                    placement: 'top-right',
+                    important: true,
+                    durationMs: 6000,
+                });
+            }
+        }
+    }, [toast]);
 
     useEffect(() => {
         // Sincronizar estado con el store de PocketBase
         const unsubscribe = pb.authStore.onChange((token, model) => {
             setUser(model);
+
+            // En algunos casos el modelo queda cargado aunque el token ya no sea válido.
+            // Forzamos logout en cuanto detectamos expiración.
+            enforceAuthValidity({ notify: true });
         });
+
+        // Watchdog: el SDK no dispara eventos automáticamente al expirar el token.
+        // Revisamos periódicamente y también al volver al tab/ventana.
+        const intervalId = setInterval(() => {
+            enforceAuthValidity({ notify: true });
+        }, 15000);
+
+        const onFocus = () => enforceAuthValidity({ notify: true });
+        const onVisibilityChange = () => {
+            if (!document.hidden) enforceAuthValidity({ notify: true });
+        };
+
+        window.addEventListener('focus', onFocus);
+        document.addEventListener('visibilitychange', onVisibilityChange);
 
         return () => {
             unsubscribe();
+            clearInterval(intervalId);
+            window.removeEventListener('focus', onFocus);
+            document.removeEventListener('visibilitychange', onVisibilityChange);
         };
-    }, []);
+    }, [enforceAuthValidity]);
 
     const login = async (username, password) => {
         setLoading(true);
@@ -54,6 +95,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         pb.authStore.clear();
+        setUser(null);
     };
 
     // Verificar si el usuario tiene el nivel requerido
@@ -90,7 +132,7 @@ export const AuthProvider = ({ children }) => {
         hasPermission,
         isAdmin,
         isSpecial,
-        isAuthenticated: !!user,
+        isAuthenticated: Boolean(user && pb.authStore.isValid),
         loading
     };
 

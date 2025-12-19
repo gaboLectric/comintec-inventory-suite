@@ -28,7 +28,7 @@ export function Equipments() {
     const [editingEquipment, setEditingEquipment] = useState(null);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
-    const [showSold, setShowSold] = useState(false);
+    const [showSold, setShowSold] = useState(true);
     const { addToast } = useToast();
     const userLevel = getUserLevel();
     const isAdmin = userLevel === 1;
