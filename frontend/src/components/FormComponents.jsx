@@ -428,10 +428,7 @@ export const EquipmentOutputForm = ({ equipments, onSubmit, onCancel }) => {
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
     const [pendingScan, setPendingScan] = useState(null);
 
-    // Filter out sold equipments for the dropdown list
-    const availableEquipments = equipments.filter(e => !e.vendido);
-
-    const filteredEquipments = availableEquipments.filter(e => 
+    const filteredEquipments = equipments.filter(e => 
         e.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.numero_serie.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (e.codigo && e.codigo.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -442,13 +439,9 @@ export const EquipmentOutputForm = ({ equipments, onSubmit, onCancel }) => {
         const equipment = equipments.find(e => e.id === id);
         
         if (equipment) {
-            if (equipment.vendido) {
-                alert(`El equipo "${equipment.producto}" (${equipment.numero_serie}) ya fue marcado como VENDIDO.`);
-            } else {
-                // Open confirmation modal instead of window.confirm
-                setPendingScan(equipment);
-                setConfirmModalOpen(true);
-            }
+            // Allow outputs even if it's marked as sold; vendido is only a visual indicator
+            setPendingScan(equipment);
+            setConfirmModalOpen(true);
         } else {
             console.log("Scanned ID:", id);
             alert(`Equipo no encontrado en el sistema.\nID Escaneado: ${id}\n\nVerifique que el equipo haya sido registrado en Entradas.`);
@@ -524,7 +517,7 @@ export const EquipmentOutputForm = ({ equipments, onSubmit, onCancel }) => {
                                 <option value="" disabled>Seleccione un equipo</option>
                                 {filteredEquipments.map(e => (
                                     <option key={e.id} value={e.id}>
-                                        {e.producto} - {e.numero_serie} ({e.marca})
+                                        {e.producto} - {e.numero_serie} ({e.marca}){e.vendido ? ' [VENDIDO]' : ''}
                                     </option>
                                 ))}
                             </ListBox>
@@ -546,7 +539,10 @@ export const EquipmentOutputForm = ({ equipments, onSubmit, onCancel }) => {
                 onClose={handleCancelScan}
                 onConfirm={handleConfirmScan}
                 title="Confirmar Salida"
-                message={`¿Está seguro de registrar la salida de este equipo?`}
+                message={pendingScan?.vendido
+                    ? 'Este equipo está marcado como VENDIDO. ¿Desea registrar su salida de todos modos?'
+                    : '¿Está seguro de registrar la salida de este equipo?'
+                }
                 details={pendingScan ? `${pendingScan.producto} - Serie: ${pendingScan.numero_serie}` : ''}
             />
         </>

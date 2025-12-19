@@ -71,9 +71,27 @@ export const QRScanner = ({ onScan, onError }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [lastScanned, setLastScanned] = useState(null);
   const [error, setError] = useState(null);
+  const [isSecureContextOk, setIsSecureContextOk] = useState(true);
   const scannerRef = useRef(null);
 
   useEffect(() => {
+    // Camera access requires a secure context (HTTPS) or localhost.
+    // When the app is served over plain HTTP on an IP (typical LAN), browsers block getUserMedia.
+    const hostname = window?.location?.hostname;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+    const ok = Boolean(window?.isSecureContext || isLocalhost);
+    setIsSecureContextOk(ok);
+
+    if (!ok) {
+      setIsScanning(false);
+      setLastScanned(null);
+      setError('La cámara solo funciona en HTTPS o localhost. En producción necesitas servir la app por HTTPS.');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isSecureContextOk) return;
+
     if (isScanning && !scannerRef.current) {
       const scanner = new Html5QrcodeScanner(
         "reader",
@@ -95,7 +113,7 @@ export const QRScanner = ({ onScan, onError }) => {
         scannerRef.current = null;
       }
     };
-  }, [isScanning]);
+  }, [isScanning, isSecureContextOk]);
 
   const onScanSuccess = (decodedText, decodedResult) => {
     try {
@@ -130,6 +148,11 @@ export const QRScanner = ({ onScan, onError }) => {
   };
 
   const toggleScanner = () => {
+    if (!isSecureContextOk) {
+      setError('La cámara solo funciona en HTTPS o localhost. En producción necesitas servir la app por HTTPS.');
+      return;
+    }
+
     if (isScanning) {
       if (scannerRef.current) {
         scannerRef.current.clear().catch(console.error);
@@ -145,7 +168,7 @@ export const QRScanner = ({ onScan, onError }) => {
 
   return (
     <ScannerContainer>
-      <ToggleButton onClick={toggleScanner} type="button">
+      <ToggleButton onClick={toggleScanner} type="button" disabled={!isSecureContextOk}>
         {isScanning ? <CameraOff size={18} /> : <Camera size={18} />}
         {isScanning ? "Detener Escáner" : "Escanear QR"}
       </ToggleButton>
