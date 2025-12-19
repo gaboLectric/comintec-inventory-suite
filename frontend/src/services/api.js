@@ -71,19 +71,28 @@ export const getEquipmentOutputs = async (page = 1, perPage = 50, filter = '') =
 
 export const createEquipmentOutput = async (data) => {
     // data should include equipment object details + output details
+    // Business rule: equipment outputs remove the equipment from inventory (move semantics)
     const output = await pb.collection('equipment_outputs').create(data);
-    
-    // Update the equipment to mark it as sold (vendido = true)
+
     if (data.equipment_id) {
         try {
-            await pb.collection('equipments').update(data.equipment_id, { vendido: true });
+            await pb.collection('equipments').delete(data.equipment_id);
         } catch (error) {
-            console.error("Error updating equipment status:", error);
-            // We don't throw here to avoid rolling back the output creation if possible,
-            // but ideally this should be transactional.
+            console.error('Error deleting equipment after output creation:', error);
+
+            // Best-effort rollback: delete the output we just created
+            if (output?.id) {
+                try {
+                    await pb.collection('equipment_outputs').delete(output.id);
+                } catch (rollbackError) {
+                    console.error('Rollback failed (could not delete created output):', rollbackError);
+                }
+            }
+
+            throw new Error('No se pudo mover el equipo a salidas: ' + (error?.message || String(error)));
         }
     }
-    
+
     return output;
 };
 

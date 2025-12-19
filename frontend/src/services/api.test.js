@@ -106,4 +106,60 @@ describe('API Service', () => {
             throw e;
         }
     });
+
+    it('createEquipmentOutput should create output and delete equipment (move semantics)', async () => {
+        const outputData = {
+            equipment_id: 'eq1',
+            codigo: 'C-1',
+            producto: 'Laptop',
+            fecha: new Date().toISOString()
+        };
+        const createdOutput = { id: 'out1', ...outputData };
+
+        const equipmentOutputsMocks = {
+            create: vi.fn().mockResolvedValue(createdOutput),
+            delete: vi.fn().mockResolvedValue(true),
+        };
+        const equipmentsMocks = {
+            delete: vi.fn().mockResolvedValue(true),
+        };
+
+        pb.collection.mockImplementation((name) => {
+            if (name === 'equipment_outputs') return equipmentOutputsMocks;
+            if (name === 'equipments') return equipmentsMocks;
+            return collectionMocks;
+        });
+
+        const result = await api.createEquipmentOutput(outputData);
+
+        expect(pb.collection).toHaveBeenCalledWith('equipment_outputs');
+        expect(equipmentOutputsMocks.create).toHaveBeenCalledWith(outputData);
+        expect(pb.collection).toHaveBeenCalledWith('equipments');
+        expect(equipmentsMocks.delete).toHaveBeenCalledWith('eq1');
+        expect(result).toEqual(createdOutput);
+    });
+
+    it('createEquipmentOutput should rollback output if equipment deletion fails', async () => {
+        const outputData = { equipment_id: 'eq2', producto: 'Router', fecha: new Date().toISOString() };
+        const createdOutput = { id: 'out2', ...outputData };
+
+        const equipmentOutputsMocks = {
+            create: vi.fn().mockResolvedValue(createdOutput),
+            delete: vi.fn().mockResolvedValue(true),
+        };
+        const equipmentsMocks = {
+            delete: vi.fn().mockRejectedValue(new Error('delete failed')),
+        };
+
+        pb.collection.mockImplementation((name) => {
+            if (name === 'equipment_outputs') return equipmentOutputsMocks;
+            if (name === 'equipments') return equipmentsMocks;
+            return collectionMocks;
+        });
+
+        await expect(api.createEquipmentOutput(outputData)).rejects.toThrow('No se pudo mover el equipo a salidas');
+        expect(equipmentOutputsMocks.create).toHaveBeenCalledWith(outputData);
+        expect(equipmentsMocks.delete).toHaveBeenCalledWith('eq2');
+        expect(equipmentOutputsMocks.delete).toHaveBeenCalledWith('out2');
+    });
 });
