@@ -6,7 +6,9 @@ import { ImportModal } from '../components/ImportModal';
 import { useToast } from '../components/Toast';
 import { getSupplies, createSupply, updateSupply, deleteSupply, getUserLevel, checkLowStock } from '../services/api';
 import pb from '../services/pocketbase';
-import { Edit, Trash2, AlertTriangle, Upload } from 'lucide-react';
+import { Edit, Trash2, AlertTriangle, Upload, Download } from 'lucide-react';
+import { exportData } from '../services/importService';
+import { getErrorMessage } from '../utils/errorHandler';
 
 export function Supplies() {
     const [supplies, setSupplies] = useState([]);
@@ -16,6 +18,7 @@ export function Supplies() {
     const [currentFilter, setCurrentFilter] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
     const [editingSupply, setEditingSupply] = useState(null);
     const { addToast } = useToast();
     const userLevel = getUserLevel();
@@ -31,7 +34,7 @@ export function Supplies() {
             setTotalItems(result.totalItems);
         } catch (error) {
             console.error(error);
-            addToast('Error al cargar insumos', 'error');
+            addToast(getErrorMessage(error), 'error');
         }
     };
 
@@ -113,7 +116,17 @@ export function Supplies() {
         loadSupplies(newPage, currentFilter);
     };
 
-
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            await exportData('supplies');
+            addToast('Inventario de insumos exportado con éxito', 'success');
+        } catch (error) {
+            addToast('Error al exportar inventario', 'error');
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     const columns = [
         { header: 'Nombre', accessor: 'nombre' },
@@ -160,9 +173,14 @@ export function Supplies() {
                     canEdit && (
                         <div style={{ display: 'flex', gap: 10 }}>
                             {isAdmin && (
-                                <ButtonStyled onClick={() => setIsImportModalOpen(true)} $variant="secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <Upload size={16} /> Importar desde Excel
-                                </ButtonStyled>
+                                <>
+                                    <ButtonStyled onClick={() => setIsImportModalOpen(true)} $variant="secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <Upload size={16} /> Importar
+                                    </ButtonStyled>
+                                    <ButtonStyled onClick={handleExport} $variant="secondary" disabled={isExporting} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <Download size={16} /> Exportar
+                                    </ButtonStyled>
+                                </>
                             )}
                             <ButtonStyled onClick={() => { setEditingSupply(null); setIsModalOpen(true); }}>
                                 Agregar Insumo

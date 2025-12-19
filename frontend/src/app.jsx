@@ -16,6 +16,7 @@ import { Supplies } from './pages/Supplies';
 import { EquipmentOutputs } from './pages/EquipmentOutputs';
 import { SupplyOutputs } from './pages/SupplyOutputs';
 import { Users } from './pages/Users';
+import { BulkImport } from './pages/BulkImport';
 
 function AppRoutes() {
     // Fallback para asegurar que /login exista siempre
@@ -53,6 +54,11 @@ function AppRoutes() {
                 <Route path="users" element={
                     <ProtectedRoute requiredLevel={1}>
                         <Users />
+                    </ProtectedRoute>
+                } />
+                <Route path="import" element={
+                    <ProtectedRoute requiredLevel={1}>
+                        <BulkImport />
                     </ProtectedRoute>
                 } />
                 <Route path="reports" element={<div style={{ color: '#eeeeec' }}>Reportes - Próximamente</div>} />

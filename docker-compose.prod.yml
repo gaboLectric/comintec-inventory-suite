@@ -11,8 +11,9 @@ services:
     restart: unless-stopped
     command: --encryptionEnv=PB_ENCRYPTION_KEY --migrationsDir=/pb_migrations
     environment:
-      # Hardcoded key for initial setup - change this after first successful deploy!
-      - PB_ENCRYPTION_KEY=28c02e4c308db1edc998579387881ae5
+      # Required in production. Set this as a secret/env var in Portainer.
+      # WARNING: changing this key after data exists will break access to encrypted fields.
+      - PB_ENCRYPTION_KEY=${PB_ENCRYPTION_KEY:?PB_ENCRYPTION_KEY is required}
       # Optional: auto-create/update PocketBase superuser on container start
       # Set these in Portainer Environment variables for first-time setup
       - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:-}

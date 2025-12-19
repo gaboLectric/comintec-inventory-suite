@@ -191,7 +191,8 @@ const menuItems = [
     requiredLevel: 3,
     submenu: [
       { label: 'Equipos', to: '/almacen/equipos', requiredLevel: 3 },
-      { label: 'Insumos', to: '/almacen/insumos', requiredLevel: 2 }
+      { label: 'Insumos', to: '/almacen/insumos', requiredLevel: 2 },
+      { label: 'Cargar Inventario', to: '/import', requiredLevel: 1 }
     ]
   },
   { 
@@ -236,6 +237,7 @@ export function Layout() {
     if (path.startsWith('/almacen/entradas')) return 'Entradas de Equipos';
     if (path.startsWith('/almacen/equipos')) return 'Equipos';
     if (path.startsWith('/almacen/insumos')) return 'Insumos';
+    if (path.startsWith('/import')) return 'Carga Masiva de Inventario';
     if (path.startsWith('/salidas/equipos')) return 'Salidas de Equipos';
     if (path.startsWith('/salidas/insumos')) return 'Salidas de Insumos';
     if (path.startsWith('/users')) return 'Usuarios';

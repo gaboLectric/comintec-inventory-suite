@@ -57,7 +57,8 @@ const ALIASES = {
     marca: ['marca', 'brand', 'fabricante'],
     modelo: ['modelo', 'model'],
     pedimento: ['pedimento', 'ped'],
-    observaciones: ['observaciones', 'notas', 'comentarios', 'detalles', 'obs']
+    observaciones: ['observaciones', 'notas', 'comentarios', 'detalles', 'obs'],
+    vendido: ['vendido', 'sold', 'status', 'venta', 'estatus', 'is_sold']
   },
   supplies: {
     nombre: ['nombre', 'producto', 'descripcion', 'insumo', 'item'],
@@ -128,8 +129,10 @@ export const validateEquipmentData = (rows) => {
   // Removed seenSerials check to allow all data to pass to import stage
 
   rows.forEach((row) => {
-    // Fill empty fields with "Sin datos"
-    const processedRow = { ...row };
+    // Create a clean object with only allowed fields
+    const processedRow = {};
+    
+    // Text fields
     ['codigo', 'producto', 'marca', 'modelo', 'numero_serie', 'pedimento', 'observaciones'].forEach(field => {
       // Find value using aliases
       let rawValue = findValue(row, field, 'equipments');
@@ -155,14 +158,24 @@ export const validateEquipmentData = (rows) => {
       }
     });
 
+    // Truncate observaciones to 100 chars (DB limit)
+    if (processedRow.observaciones && processedRow.observaciones.length > 100) {
+      processedRow.observaciones = processedRow.observaciones.substring(0, 100);
+    }
+
     // Normalize observaciones to Sentence case
     if (processedRow.observaciones && processedRow.observaciones !== 'Sin datos') {
       processedRow.observaciones = toSentenceCase(processedRow.observaciones);
     }
 
-    // Removed duplicate serial check
-    // Removed required field checks (they are filled with "Sin datos" now)
-    // Removed length limit on observations
+    // Handle vendido (boolean)
+    const vendidoRaw = findValue(row, 'vendido', 'equipments');
+    if (vendidoRaw !== undefined && vendidoRaw !== null && String(vendidoRaw).trim() !== '') {
+      const v = String(vendidoRaw).trim().toUpperCase();
+      processedRow.vendido = ['SÍ', 'SI', 'YES', 'TRUE', '1', 'VENDIDO'].includes(v);
+    }
+    // Removed else block to avoid sending 'vendido' field if it's not present in the source
+    // This prevents errors if the 'vendido' field doesn't exist in the database schema yet
 
     // All rows are considered valid for attempt
     valid.push(processedRow);
@@ -204,6 +217,9 @@ export const importEquipments = async (validatedData) => {
       const record = await pb.collection('equipments').create(dataToSave);
       return { success: true, data: record };
     } catch (error) {
+      console.error('Import error for item:', JSON.stringify(item, null, 2));
+      console.error('Error details:', JSON.stringify(error.response || error.message, null, 2));
+      
       // If error is unique constraint on numero_serie, try to append suffix and retry
       // This fulfills "import everything" requirement even if duplicates exist
       if (error.status === 400 && error.response?.data?.numero_serie) {
@@ -266,4 +282,43 @@ export const generateTemplate = (type) => {
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Plantilla');
   XLSX.writeFile(workbook, filename);
+};
+
+export const exportData = async (type) => {
+  try {
+    const records = await pb.collection(type).getFullList();
+
+    let data = [];
+    let filename = '';
+
+    if (type === 'supplies') {
+      data = records.map(r => ({
+        nombre: r.nombre,
+        piezas: r.piezas,
+        stock_deseado: r.stock_deseado
+      }));
+      filename = `inventario_insumos_${new Date().toISOString().split('T')[0]}.xlsx`;
+    } else if (type === 'equipments') {
+      data = records.map(r => ({
+        codigo: r.codigo,
+        producto: r.producto,
+        marca: r.marca,
+        modelo: r.modelo,
+        numero_serie: r.numero_serie,
+        pedimento: r.pedimento,
+        observaciones: r.observaciones,
+        vendido: r.vendido ? 'SÍ' : 'NO'
+      }));
+      filename = `inventario_equipos_${new Date().toISOString().split('T')[0]}.xlsx`;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventario');
+    XLSX.writeFile(workbook, filename);
+    return true;
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    throw error;
+  }
 };

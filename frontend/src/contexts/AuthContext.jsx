@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import pb from '../services/pocketbase';
+import { getErrorMessage } from '../utils/errorHandler';
 
 const AuthContext = createContext(null);
 
@@ -41,10 +42,9 @@ export const AuthProvider = ({ children }) => {
                 console.error('User login error:', error);
                 console.error('Admin login error:', adminError);
                 
-                // Preferimos mostrar el error de admin si intentamos loguear como admin,
-                // ya que es el último intento. O concatenar ambos.
-                // Por ahora, mostremos el error de admin si es diferente al de usuario, o un mensaje genérico.
-                const message = adminError.message || error.message || 'Error al iniciar sesión';
+                // Usar el helper para obtener un mensaje amigable
+                // Priorizamos el error de admin si es un fallo de autenticación
+                const message = getErrorMessage(adminError);
                 return { success: false, error: message };
             }
         } finally {

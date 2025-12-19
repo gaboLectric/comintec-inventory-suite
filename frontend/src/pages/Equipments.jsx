@@ -7,7 +7,11 @@ import { EquipmentEditModal } from '../components/EquipmentEditModal';
 import { useToast } from '../components/Toast';
 import { getEquipments, getUserLevel } from '../services/api';
 import pb from '../services/pocketbase';
-import { Eye, QrCode, Edit } from 'lucide-react';
+import { Eye, QrCode, Edit, Upload, Download } from 'lucide-react';
+import { ImportModal } from '../components/ImportModal';
+import { ButtonStyled } from '../components/FormComponents';
+import { exportData } from '../services/importService';
+import { getErrorMessage } from '../utils/errorHandler';
 
 export function Equipments() {
     const [equipments, setEquipments] = useState([]);
@@ -22,9 +26,12 @@ export function Equipments() {
     const [selectedQREquipment, setSelectedQREquipment] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingEquipment, setEditingEquipment] = useState(null);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
     const [showSold, setShowSold] = useState(false);
     const { addToast } = useToast();
     const userLevel = getUserLevel();
+    const isAdmin = userLevel === 1;
 
     const loadEquipments = async (pageToLoad = 1, filter = '') => {
         try {
@@ -39,7 +46,7 @@ export function Equipments() {
             setTotalItems(result.totalItems);
         } catch (error) {
             console.error(error);
-            addToast('Error al cargar equipos', 'error');
+            addToast(getErrorMessage(error), 'error');
         }
     };
 
@@ -86,6 +93,18 @@ export function Equipments() {
 
     const handlePageChange = (newPage) => {
         loadEquipments(newPage, currentFilter);
+    };
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            await exportData('equipments');
+            addToast('Inventario de equipos exportado con éxito', 'success');
+        } catch (error) {
+            addToast('Error al exportar inventario', 'error');
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     const columns = [
@@ -161,15 +180,27 @@ export function Equipments() {
                 data={equipments} 
                 onSearch={handleSearch}
                 actions={
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--font-color-secondary)', cursor: 'pointer' }}>
-                        <input 
-                            type="checkbox" 
-                            checked={showSold} 
-                            onChange={(e) => setShowSold(e.target.checked)} 
-                            style={{ accentColor: 'var(--brand-blue-9)' }}
-                        />
-                        Mostrar Vendidos
-                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        {isAdmin && (
+                            <>
+                                <ButtonStyled onClick={() => setIsImportModalOpen(true)} $variant="secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <Upload size={16} /> Importar
+                                </ButtonStyled>
+                                <ButtonStyled onClick={handleExport} $variant="secondary" disabled={isExporting} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <Download size={16} /> Exportar
+                                </ButtonStyled>
+                            </>
+                        )}
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--font-color-secondary)', cursor: 'pointer' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={showSold} 
+                                onChange={(e) => setShowSold(e.target.checked)} 
+                                style={{ accentColor: 'var(--brand-blue-9)' }}
+                            />
+                            Mostrar Vendidos
+                        </label>
+                    </div>
                 }
                 pagination={{
                     page,
@@ -203,6 +234,13 @@ export function Equipments() {
                 onClose={() => setIsEditModalOpen(false)}
                 equipment={editingEquipment}
                 onUpdate={() => loadEquipments(page, currentFilter)}
+            />
+
+            <ImportModal 
+                isOpen={isImportModalOpen} 
+                onClose={() => setIsImportModalOpen(false)} 
+                type="equipments" 
+                onImportComplete={() => loadEquipments(1, currentFilter)} 
             />
         </div>
     );
