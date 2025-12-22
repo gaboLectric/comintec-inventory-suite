@@ -1,0 +1,33 @@
+# Dockerfile for development environment simulating production (nginx + HTTPS)
+# Stage 1: Build the application
+FROM node:20-alpine AS build
+
+ARG VITE_API_URL
+
+ENV VITE_API_URL=$VITE_API_URL
+
+WORKDIR /app
+
+COPY frontend/package.json frontend/package-lock.json ./
+
+RUN npm ci --no-audit --no-fund
+
+COPY frontend/ ./
+
+RUN npm run build
+
+# Stage 2: Production-like server with HTTPS
+FROM nginx:alpine
+
+RUN apk add --no-cache curl
+
+COPY --from=build /app/dist /usr/share/nginx/html
+
+COPY frontend/nginx.https.conf /etc/nginx/conf.d/default.conf
+
+COPY docker/frontend-healthcheck-https.sh /docker/frontend-healthcheck.sh
+RUN chmod +x /docker/frontend-healthcheck.sh
+
+EXPOSE 80 443
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,60 @@
+version: '3.8'
+
+name: inventario-mod
+
+services:
+  pocketbase:
+    build:
+      context: .
+      dockerfile: Dockerfile.pocketbase.prod
+    container_name: inventario-pocketbase-prod
+    restart: unless-stopped
+    command: --encryptionEnv=PB_ENCRYPTION_KEY --migrationsDir=/pb_migrations
+    environment:
+      - PB_ENCRYPTION_KEY=${PB_ENCRYPTION_KEY:?PB_ENCRYPTION_KEY is required}
+      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:-}
+      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:-}
+    ports:
+      - "${POCKETBASE_PORT:-8090}:8090"
+    volumes:
+      - pb_data:/pb_data
+    networks:
+      - inventario-network
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.prod.https
+      args:
+        - VITE_API_URL=${VITE_API_URL:-/api}
+    container_name: inventario-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+      - "${FRONTEND_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./docker/ssl:/etc/nginx/ssl:ro  # Certificados SSL
+    depends_on:
+      - pocketbase
+    networks:
+      - inventario-network
+    healthcheck:
+      test: ["CMD", "/bin/sh", "/docker/frontend-healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  pb_data:
+    driver: local
+
+networks:
+  inventario-network:
+    driver: bridge
