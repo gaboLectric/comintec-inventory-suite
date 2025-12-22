@@ -44,14 +44,21 @@ case $choice in
         ./start-https.sh
         ;;
     3)
-        echo -e "${GREEN}Starting in Production Simulation mode...${NC}"
+        echo -e "${GREEN}Starting in Production (HTTPS) mode...${NC}"
         # Ensure certs exist
         if [ ! -f "./docker/ssl/server.crt" ]; then
             echo -e "${YELLOW}Generating SSL certificates...${NC}"
             ./generate-ssl-cert.sh
         fi
-        docker-compose -f docker-compose.dev.https.yml up -d --build
-        echo -e "${GREEN}App running at https://localhost:8443${NC}"
+        
+        # Check for encryption key
+        if [ -z "$PB_ENCRYPTION_KEY" ]; then
+            echo -e "${YELLOW}Warning: PB_ENCRYPTION_KEY not set. Using default for demo.${NC}"
+            export PB_ENCRYPTION_KEY="demo_key_123456789012345678901234"
+        fi
+
+        docker-compose -f docker-compose.prod.https.yml up -d --build
+        echo -e "${GREEN}App running at https://localhost (Port 443)${NC}"
         echo -e "${GREEN}PocketBase running at http://localhost:8090${NC}"
         ;;
     4)
@@ -60,6 +67,7 @@ case $choice in
         docker-compose -f docker-compose.https.yml down 2>/dev/null || true
         docker-compose -f docker-compose.dev.https.yml down 2>/dev/null || true
         docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
+        docker-compose -f docker-compose.prod.https.yml down 2>/dev/null || true
         echo "All containers stopped."
         ;;
     *)
