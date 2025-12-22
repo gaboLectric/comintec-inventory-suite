@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SimpleTable } from '../components/SimpleTable';
-import { SupplyForm, ButtonStyled } from '../components/FormComponents';
+import { SupplyForm } from '../components/FormComponents';
+import { GlassButton } from '../components/GlassButton';
 import { Modal } from '../components/Modal';
 import { ImportModal } from '../components/ImportModal';
 import { useToast } from '../components/Toast';
@@ -145,7 +146,7 @@ export function Supplies() {
         { header: 'Acciones', render: (row) => (
             canEdit && (
                 <div style={{ display: 'flex', gap: 10 }}>
-                    <button onClick={() => { setEditingSupply(row); setIsModalOpen(true); }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--brand-blue-9)' }}>
+                    <button onClick={() => { setEditingSupply(row); setIsModalOpen(true); }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#FF6B35' }}>
                         <Edit size={18} />
                     </button>
                     <button onClick={() => handleDelete(row.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--brand-red-9)' }}>
@@ -174,17 +175,17 @@ export function Supplies() {
                         <div style={{ display: 'flex', gap: 10 }}>
                             {isAdmin && (
                                 <>
-                                    <ButtonStyled onClick={() => setIsImportModalOpen(true)} $variant="secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        <Upload size={16} /> Importar
-                                    </ButtonStyled>
-                                    <ButtonStyled onClick={handleExport} $variant="secondary" disabled={isExporting} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        <Download size={16} /> Exportar
-                                    </ButtonStyled>
+                                    <GlassButton onClick={() => setIsImportModalOpen(true)} variant="secondary" icon={<Upload size={16} />}>
+                                        Importar
+                                    </GlassButton>
+                                    <GlassButton onClick={handleExport} variant="secondary" disabled={isExporting} icon={<Download size={16} />}>
+                                        Exportar
+                                    </GlassButton>
                                 </>
                             )}
-                            <ButtonStyled onClick={() => { setEditingSupply(null); setIsModalOpen(true); }}>
+                            <GlassButton variant="primary" onClick={() => { setEditingSupply(null); setIsModalOpen(true); }}>
                                 Agregar Insumo
-                            </ButtonStyled>
+                            </GlassButton>
                         </div>
                     )
                 }

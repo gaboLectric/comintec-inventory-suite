@@ -13,8 +13,26 @@ const DashboardContainer = styled.div`
 
 const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: var(--space-4);
+  
+  /* Mobile-first responsive grid */
+  grid-template-columns: 1fr;
+  
+  /* Tablet: 2 columns */
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Desktop: auto-fit with minimum card width */
+  @media (min-width: var(--breakpoint-mobile)) {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  
+  /* Large desktop: maximum 4 columns */
+  @media (min-width: var(--breakpoint-tablet)) {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    max-width: 1200px;
+  }
 `;
 
 export function Dashboard() {
@@ -49,7 +67,7 @@ export function Dashboard() {
           title="Equipos"
           value={loading ? '...' : stats.equipments}
           icon={Package}
-          gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+          gradient="#3B82F6"
         />
         {userLevel <= 2 && (
             <>
@@ -57,13 +75,13 @@ export function Dashboard() {
                   title="Insumos"
                   value={loading ? '...' : stats.supplies}
                   icon={Box}
-                  gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+                  gradient="#8B5CF6"
                 />
                 <StatCard
                   title="Bajo Stock"
                   value={loading ? '...' : stats.lowStock}
                   icon={AlertTriangle}
-                  gradient={stats.lowStock > 0 ? "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)" : "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)"}
+                  gradient={stats.lowStock > 0 ? "#EF4444" : "#22C55E"}
                 />
             </>
         )}
@@ -72,7 +90,7 @@ export function Dashboard() {
               title="Usuarios"
               value={loading ? '...' : stats.users}
               icon={Users}
-              gradient="linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)"
+              gradient="#14B8A6"
             />
         )}
       </StatsGrid>

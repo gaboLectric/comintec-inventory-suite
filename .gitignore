@@ -8,6 +8,8 @@
 .qoder/rules/byterover-rules.md
 .augment/rules/byterover-rules.md
 .CLAUDE.md
+.kiro
+
 # PocketBase temporary files
 pocketbase/pb_data/*.db-shm
 pocketbase/pb_data/*.db-wal

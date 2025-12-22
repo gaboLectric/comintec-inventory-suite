@@ -1,18 +1,20 @@
 :root {
-  /* Typography */
-  --font-family: Inter, sans-serif;
+  /* Typography - Enhanced for mobile-first */
+  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, system-ui, sans-serif;
   --font-size-xxs: 0.625rem; /* 10px */
-  --font-size-xs: 0.85rem;   /* ~13.6px */
-  --font-size-sm: 0.92rem;   /* ~14.7px */
-  --font-size-md: 1rem;      /* 16px */
-  --font-size-lg: 1.23rem;   /* ~19.7px */
-  --font-size-xl: 1.54rem;   /* ~24.6px */
-  --font-size-xxl: 1.85rem;  /* ~29.6px */
+  --font-size-xs: 0.75rem;   /* 12px - improved mobile readability */
+  --font-size-sm: 0.875rem;  /* 14px - improved mobile readability */
+  --font-size-md: 1rem;      /* 16px - base size for body text */
+  --font-size-lg: 1.125rem;  /* 18px - improved mobile readability */
+  --font-size-xl: 1.25rem;   /* 20px - improved mobile readability */
+  --font-size-xxl: 1.5rem;   /* 24px - improved mobile readability */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
-  --line-height-md: 1.1;
-  --line-height-lg: 1.5;
+  --font-weight-bold: 700;   /* Added for headings */
+  --line-height-tight: 1.25; /* For headings */
+  --line-height-md: 1.4;     /* Improved readability */
+  --line-height-lg: 1.6;     /* For body text */
 
   /* Spacing scale (4px base) */
   --space-0: 0px;
@@ -148,6 +150,62 @@
   --brand-red-8: #f25551;
   --brand-red-9: #e5484d;
   --brand-red-10: #d2343a;
+
+  /* Glass Effects - Optimized for low-end hardware */
+  --glass-blur-light: 8px;
+  --glass-blur-medium: 12px;
+  --glass-blur-strong: 16px;
+  
+  /* Glass Backgrounds - Dark Mode (más opacos = menos blur necesario) */
+  --glass-bg-light: rgba(30, 30, 30, 0.85);
+  --glass-bg-medium: rgba(35, 35, 35, 0.9);
+  --glass-bg-strong: rgba(40, 40, 40, 0.95);
+  
+  /* Glass Borders */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.15);
+  
+  /* Glass Shadows */
+  --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --glass-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.3);
+  
+  /* Accent Colors - Solid Vibrant Palette */
+  --accent-blue: #3B82F6;
+  --accent-purple: #8B5CF6;
+  --accent-pink: #EC4899;
+  --accent-green: #22C55E;
+  --accent-orange: #FF6B35;
+  --accent-yellow: #F59E0B;
+  --accent-red: #EF4444;
+  --accent-teal: #14B8A6;
+  
+  /* Button Colors - Solid */
+  --btn-primary: #FF6B35;
+  --btn-primary-hover: #E85A2A;
+  --btn-secondary: #3B82F6;
+  --btn-secondary-hover: #2563EB;
+  --btn-success: #22C55E;
+  --btn-success-hover: #16A34A;
+  --btn-warning: #F59E0B;
+  --btn-warning-hover: #D97706;
+  --btn-danger: #EF4444;
+  --btn-danger-hover: #DC2626;
+  
+  /* Responsive Breakpoints */
+  --breakpoint-mobile: 768px;
+  --breakpoint-tablet: 1024px;
+  
+  /* Animation - Enhanced with accessibility */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 250ms ease-out;
+  --transition-slow: 350ms ease-out;
+  
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    --transition-fast: 0ms;
+    --transition-normal: 0ms;
+    --transition-slow: 0ms;
+  }
 }
 
 /* Light mode overrides */
@@ -172,6 +230,15 @@
   --bg-transparent-light: rgba(0,0,0,0.03);
   --shadow-light: 0px 2px 4px rgba(0,0,0,0.06), 0px 0px 4px rgba(0,0,0,0.05);
   --shadow-strong: 2px 4px 16px rgba(0,0,0,0.08), 0px 2px 4px rgba(0,0,0,0.05);
+  
+  /* Glass Effects - Light Mode (más opacos = menos blur necesario) */
+  --glass-bg-light: rgba(255, 255, 255, 0.85);
+  --glass-bg-medium: rgba(255, 255, 255, 0.9);
+  --glass-bg-strong: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-border-hover: rgba(0, 0, 0, 0.12);
+  --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --glass-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 /* Helpers: asigna variables a clases utilitarias si lo deseas */

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SimpleTable } from '../components/SimpleTable';
-import { EquipmentOutputForm, ButtonStyled } from '../components/FormComponents';
+import { EquipmentOutputForm } from '../components/FormComponents';
+import { GlassButton } from '../components/GlassButton';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { getEquipmentOutputs, createEquipmentOutput, getEquipments, getUserLevel } from '../services/api';
@@ -155,9 +156,9 @@ export function EquipmentOutputs() {
                             Mostrar todo el historial
                         </label>
                         {canCreate && (
-                            <ButtonStyled onClick={() => setIsModalOpen(true)}>
+                            <GlassButton variant="primary" onClick={() => setIsModalOpen(true)}>
                                 Registrar Salida
-                            </ButtonStyled>
+                            </GlassButton>
                         )}
                     </div>
                 }

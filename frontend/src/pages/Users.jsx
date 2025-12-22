@@ -4,36 +4,12 @@ import { useEffect, useState } from 'react';
 import { fetchUsers, createUser, updateUser, deleteUser, getUserLevel } from '../services/api';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import { Modal } from '../components/Modal';
-import { Form, FormRow, FormGroup, Label, Input, Select, ButtonGroup, ButtonStyled as Button } from '../components/FormComponents';
+import { Form, FormRow, FormGroup, Label, Input, Select, ButtonGroup } from '../components/FormComponents';
+import { GlassButton } from '../components/GlassButton';
 import { useNavigate } from 'react-router-dom';
 
 const PageContainer = styled.div`
   padding: var(--space-6);
-`;
-
-const AddButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all var(--anim-duration-fast);
-  
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-  
-  svg {
-    width: 18px;
-    height: 18px;
-  }
 `;
 
 const ActionButtons = styled.div`
@@ -44,7 +20,7 @@ const ActionButtons = styled.div`
 
 const IconButtonStyled = styled.button`
   padding: var(--space-2);
-  background: ${props => props.$variant === 'danger' ? '#dc3545' : '#17a2b8'};
+  background: ${props => props.$variant === 'danger' ? '#EF4444' : '#3B82F6'};
   color: white;
   border: none;
   border-radius: var(--radius-sm);
@@ -55,7 +31,7 @@ const IconButtonStyled = styled.button`
   justify-content: center;
 
   &:hover {
-    opacity: 0.8;
+    background: ${props => props.$variant === 'danger' ? '#DC2626' : '#2563EB'};
     transform: scale(1.05);
   }
 
@@ -69,7 +45,7 @@ const IconButton = styled(IconButtonStyled, {
   shouldForwardProp: (prop) => !['$variant'].includes(prop)
 })`
   padding: var(--space-2);
-  background: ${props => props.$variant === 'danger' ? '#dc3545' : '#17a2b8'};
+  background: ${props => props.$variant === 'danger' ? '#EF4444' : '#3B82F6'};
   color: white;
   border: none;
   border-radius: var(--radius-sm);
@@ -205,10 +181,9 @@ export function Users() {
             columns={columns} 
             data={users} 
             actions={
-                <AddButton onClick={handleAdd}>
-                  <Plus />
+                <GlassButton variant="primary" onClick={handleAdd} icon={<Plus />}>
                   Agregar Usuario
-                </AddButton>
+                </GlassButton>
             }
         />
       )}
@@ -264,12 +239,12 @@ export function Users() {
           </FormRow>
 
           <ButtonGroup>
-            <Button type="button" $variant="secondary" onClick={() => setIsModalOpen(false)}>
+            <GlassButton type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
               Cancelar
-            </Button>
-            <Button type="submit">
+            </GlassButton>
+            <GlassButton type="submit" variant="primary">
               {editingUser ? 'Guardar Cambios' : 'Crear Usuario'}
-            </Button>
+            </GlassButton>
           </ButtonGroup>
         </Form>
       </Modal>

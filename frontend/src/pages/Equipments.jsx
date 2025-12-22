@@ -9,7 +9,7 @@ import { getEquipments, getUserLevel } from '../services/api';
 import pb from '../services/pocketbase';
 import { Eye, QrCode, Edit, Upload, Download } from 'lucide-react';
 import { ImportModal } from '../components/ImportModal';
-import { ButtonStyled } from '../components/FormComponents';
+import { GlassButton } from '../components/GlassButton';
 import { exportData } from '../services/importService';
 import { getErrorMessage } from '../utils/errorHandler';
 
@@ -158,14 +158,14 @@ export function Equipments() {
                     </span>
                 )}
                 {userLevel <= 2 && (
-                    <button onClick={() => { setEditingEquipment(row); setIsEditModalOpen(true); }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--brand-blue-9)' }} title="Editar">
+                    <button onClick={() => { setEditingEquipment(row); setIsEditModalOpen(true); }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#FF6B35' }} title="Editar">
                         <Edit size={18} />
                     </button>
                 )}
                 <button onClick={() => setViewingEquipment(row)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--font-color-secondary)' }} title="Ver detalles">
                     <Eye size={18} />
                 </button>
-                <button onClick={() => { setSelectedQREquipment(row); setIsQRModalOpen(true); }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--brand-blue-9)' }} title="Ver QR">
+                <button onClick={() => { setSelectedQREquipment(row); setIsQRModalOpen(true); }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#FF6B35' }} title="Ver QR">
                     <QrCode size={18} />
                 </button>
             </div>
@@ -183,12 +183,12 @@ export function Equipments() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         {isAdmin && (
                             <>
-                                <ButtonStyled onClick={() => setIsImportModalOpen(true)} $variant="secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <Upload size={16} /> Importar
-                                </ButtonStyled>
-                                <ButtonStyled onClick={handleExport} $variant="secondary" disabled={isExporting} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <Download size={16} /> Exportar
-                                </ButtonStyled>
+                                <GlassButton onClick={() => setIsImportModalOpen(true)} variant="secondary" icon={<Upload size={16} />}>
+                                    Importar
+                                </GlassButton>
+                                <GlassButton onClick={handleExport} variant="secondary" disabled={isExporting} icon={<Download size={16} />}>
+                                    Exportar
+                                </GlassButton>
                             </>
                         )}
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--font-color-secondary)', cursor: 'pointer' }}>

@@ -23,7 +23,7 @@ const AddButton = styled.button`
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #FF6B35;
   color: white;
   border: none;
   border-radius: var(--radius-sm);
@@ -33,8 +33,9 @@ const AddButton = styled.button`
   transition: all var(--anim-duration-fast);
   
   &:hover {
+    background: #E85A2A;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
   }
   
   svg {
@@ -114,7 +115,7 @@ const ActionButtons = styled.div`
 
 const IconButtonStyled = styled.button`
   padding: var(--space-2);
-  background: ${props => props.$variant === 'danger' ? '#dc3545' : '#17a2b8'};
+  background: ${props => props.$variant === 'danger' ? '#EF4444' : '#3B82F6'};
   color: white;
   border: none;
   border-radius: var(--radius-sm);
@@ -125,7 +126,7 @@ const IconButtonStyled = styled.button`
   justify-content: center;
 
   &:hover {
-    opacity: 0.8;
+    background: ${props => props.$variant === 'danger' ? '#DC2626' : '#2563EB'};
     transform: scale(1.05);
   }
 
@@ -138,7 +139,7 @@ const IconButton = styled(IconButtonStyled, {
   shouldForwardProp: (prop) => !['$variant'].includes(prop)
 })`
   padding: var(--space-2);
-  background: ${props => props.$variant === 'danger' ? '#dc3545' : '#17a2b8'};
+  background: ${props => props.$variant === 'danger' ? '#EF4444' : '#3B82F6'};
   color: white;
   border: none;
   border-radius: var(--radius-sm);
@@ -149,7 +150,7 @@ const IconButton = styled(IconButtonStyled, {
   justify-content: center;
 
   &:hover {
-    opacity: 0.8;
+    background: ${props => props.$variant === 'danger' ? '#DC2626' : '#2563EB'};
     transform: scale(1.05);
   }
 

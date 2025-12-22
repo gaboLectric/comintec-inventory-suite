@@ -1,7 +1,9 @@
 import styled from '@emotion/styled';
 import { Link, useLocation } from 'react-router-dom';
 
-const SidebarItemContainer = styled(Link)`
+const StyledLink = styled(Link, {
+  shouldForwardProp: (prop) => !['$active'].includes(prop)
+})`
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -11,18 +13,37 @@ const SidebarItemContainer = styled(Link)`
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
   border-radius: var(--radius-sm);
-  transition: all var(--anim-duration-fast);
+  transition: all var(--transition-fast);
   position: relative;
+  border: 1px solid transparent;
 
   &:hover {
-    background: var(--bg-tertiary);
+    background: var(--glass-bg-light);
+    backdrop-filter: blur(var(--glass-blur-light));
+    -webkit-backdrop-filter: blur(var(--glass-blur-light));
     color: var(--font-color-primary);
+    border-color: var(--glass-border);
+    
+    /* Fallback for browsers without backdrop-filter support */
+    @supports not (backdrop-filter: blur(10px)) {
+      background: var(--bg-tertiary);
+    }
   }
 
   ${props => props.$active && `
-    background: var(--bg-tertiary);
+    background: var(--glass-bg-medium);
+    backdrop-filter: blur(var(--glass-blur-medium));
+    -webkit-backdrop-filter: blur(var(--glass-blur-medium));
     color: var(--font-color-primary);
     font-weight: var(--font-weight-semibold);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow);
+
+    /* Fallback for browsers without backdrop-filter support */
+    @supports not (backdrop-filter: blur(16px)) {
+      background: var(--bg-tertiary);
+      border-color: var(--border-color-strong);
+    }
 
     &::before {
       content: '';
@@ -31,58 +52,20 @@ const SidebarItemContainer = styled(Link)`
       top: 0;
       bottom: 0;
       width: 3px;
-      background: linear-gradient(135deg, #FFD700 0%, #DAA520 100%);
+      background: var(--accent-orange);
       border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      box-shadow: 0 0 8px rgba(255, 107, 53, 0.3);
     }
   `}
 
   svg {
     width: 20px;
     height: 20px;
-  }
-`;
-
-// Aplicar shouldForwardProp para evitar que $active se pase al DOM
-const StyledLink = styled(Link, {
-  shouldForwardProp: (prop) => !['$active'].includes(prop)
-})`
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-4);
-  color: #a1a09a;
-  text-decoration: none;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-  border-radius: var(--radius-sm);
-  transition: all var(--anim-duration-fast);
-  position: relative;
-
-  &:hover {
-    background: #3e3e3a;
-    color: #eeeeec;
+    transition: all var(--transition-fast);
   }
 
-  ${props => props.$active && `
-    background: #3e3e3a;
-    color: #eeeeec;
-    font-weight: var(--font-weight-semibold);
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    }
-  `}
-
-  svg {
-    width: 20px;
-    height: 20px;
+  &:hover svg {
+    transform: scale(1.05);
   }
 `;
 

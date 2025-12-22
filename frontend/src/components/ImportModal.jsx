@@ -22,7 +22,7 @@ const FileUploadArea = styled.div`
   background: var(--bg-secondary);
 
   &:hover {
-    border-color: #667eea;
+    border-color: #FF6B35;
     background: var(--bg-tertiary);
   }
 `;
@@ -75,7 +75,7 @@ const ProgressBar = styled.div`
 
   div {
     height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #FF6B35;
     width: ${props => props.progress}%;
     transition: width 0.3s ease;
   }

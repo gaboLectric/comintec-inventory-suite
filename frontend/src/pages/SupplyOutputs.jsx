@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SimpleTable } from '../components/SimpleTable';
-import { SupplyOutputForm, ButtonStyled } from '../components/FormComponents';
+import { SupplyOutputForm } from '../components/FormComponents';
+import { GlassButton } from '../components/GlassButton';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { getSupplyOutputs, createSupplyOutput, getSupplies, getUserLevel } from '../services/api';
@@ -148,9 +149,9 @@ export function SupplyOutputs() {
                             Mostrar todo el historial
                         </label>
                         {canCreate && (
-                            <ButtonStyled onClick={() => setIsModalOpen(true)}>
+                            <GlassButton variant="primary" onClick={() => setIsModalOpen(true)}>
                                 Registrar Salida
-                            </ButtonStyled>
+                            </GlassButton>
                         )}
                     </div>
                 }

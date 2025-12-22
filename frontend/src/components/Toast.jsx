@@ -13,44 +13,117 @@ const ToastContainer = styled.div`
 `;
 
 const ToastItem = styled.div`
-    background: ${props => (props.$type === 'warning' && props.$important) ? 'var(--brand-yellow-3)' : 'var(--bg-secondary)'};
-    border: 1px solid ${props => props.$type === 'error' ? 'var(--brand-red-9)' : props.$type === 'warning' ? 'var(--brand-yellow-9)' : 'var(--brand-green-9)'};
-    border-left-width: ${props => props.$important ? '6px' : '4px'};
-  border-radius: var(--radius-sm);
-  padding: var(--space-3) var(--space-4);
-  box-shadow: var(--shadow-heavy);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur-strong));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
+  border: 1px solid var(--glass-border);
+  border-left: 4px solid ${props => 
+    props.$type === 'error' ? 'var(--accent-red)' : 
+    props.$type === 'warning' ? 'var(--accent-orange)' : 
+    props.$type === 'success' ? 'var(--accent-green)' : 
+    'var(--accent-blue)'
+  };
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--glass-shadow-elevated);
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  min-width: 300px;
-  max-width: 400px;
-  animation: slideIn 0.3s ease;
-    color: ${props => (props.$type === 'warning' && props.$important) ? 'var(--gray-1)' : 'var(--font-color-primary)'};
+  min-width: 320px;
+  max-width: 420px;
+  animation: slideInGlass var(--transition-normal) ease-out;
+  color: var(--font-color-primary);
+  transition: all var(--transition-fast);
+  
+  /* Fallback for browsers without backdrop-filter support */
+  @supports not (backdrop-filter: blur(24px)) {
+    background: var(--bg-secondary);
+    border-color: var(--border-color-strong);
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glass-shadow-elevated), 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-color: var(--glass-border-hover);
+  }
 
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+  @keyframes slideInGlass {
+    from { 
+      transform: translateX(100%) scale(0.95); 
+      opacity: 0; 
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+    }
+    to { 
+      transform: translateX(0) scale(1); 
+      opacity: 1; 
+      backdrop-filter: blur(var(--glass-blur-strong));
+      -webkit-backdrop-filter: blur(var(--glass-blur-strong));
+    }
+  }
+  
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    animation: slideInGlassReduced var(--transition-fast) ease-out;
+    
+    &:hover {
+      transform: none;
+    }
+    
+    @keyframes slideInGlassReduced {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   }
 `;
 
 const Message = styled.div`
   flex: 1;
-  font-size: var(--font-size-sm);
-    color: inherit;
-    font-weight: ${props => props.$important ? 'var(--font-weight-semibold)' : 'var(--font-weight-regular)'};
+  font-size: var(--font-size-md);
+  color: var(--font-color-primary);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-lg);
 `;
 
 const CloseBtn = styled.button`
-  background: none;
-  border: none;
-    color: inherit;
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(var(--glass-blur-light));
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--font-color-secondary);
   cursor: pointer;
-  padding: 0;
+  padding: var(--space-1);
   display: flex;
-  &:hover { color: var(--font-color-primary); }
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  
+  /* Fallback for browsers without backdrop-filter support */
+  @supports not (backdrop-filter: blur(10px)) {
+    background: var(--bg-tertiary);
+  }
+  
+  &:hover { 
+    color: var(--font-color-primary);
+    background: var(--glass-bg-medium);
+    border-color: var(--glass-border-hover);
+    transform: scale(1.1);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    &:hover, &:active {
+      transform: none;
+    }
+  }
 `;
 
-const ToastComponent = ({ message, type = 'info', important = false, durationMs = 5000, onClose }) => {
+const ToastComponent = ({ message, type = 'info', durationMs = 5000, onClose }) => {
     useEffect(() => {
         if (!durationMs || durationMs <= 0) return;
         const timer = setTimeout(() => {
@@ -60,19 +133,24 @@ const ToastComponent = ({ message, type = 'info', important = false, durationMs 
     }, [durationMs, onClose]);
 
     const getIcon = () => {
-        const iconSize = important ? 24 : 20;
+        const iconSize = 20;
+        const iconColor = type === 'error' ? 'var(--accent-red)' : 
+                         type === 'warning' ? 'var(--accent-orange)' : 
+                         type === 'success' ? 'var(--accent-green)' : 
+                         'var(--accent-blue)';
+        
         switch(type) {
-            case 'error': return <AlertTriangle size={iconSize} color="var(--brand-red-9)" />;
-            case 'warning': return <AlertTriangle size={iconSize} color={important ? 'var(--gray-1)' : 'var(--brand-yellow-9)'} />;
-            case 'success': return <CheckCircle size={iconSize} color="var(--brand-green-9)" />;
-            default: return <Info size={iconSize} color="var(--brand-blue-9)" />;
+            case 'error': return <AlertTriangle size={iconSize} color={iconColor} />;
+            case 'warning': return <AlertTriangle size={iconSize} color={iconColor} />;
+            case 'success': return <CheckCircle size={iconSize} color={iconColor} />;
+            default: return <Info size={iconSize} color={iconColor} />;
         }
     };
 
     return (
-        <ToastItem $type={type} $important={important}>
+        <ToastItem $type={type}>
             {getIcon()}
-            <Message $important={important}>{message}</Message>
+            <Message>{message}</Message>
             <CloseBtn onClick={onClose}><X size={16} /></CloseBtn>
         </ToastItem>
     );
@@ -87,8 +165,7 @@ export const ToastProvider = ({ children }) => {
         const id = Date.now() + Math.random();
         const placement = options?.placement === 'top-right' ? 'top-right' : 'bottom-right';
         const durationMs = typeof options?.durationMs === 'number' ? options.durationMs : 5000;
-        const important = Boolean(options?.important);
-        setToasts(prev => [...prev, { id, message, type, placement, durationMs, important }]);
+        setToasts(prev => [...prev, { id, message, type, placement, durationMs }]);
     }, []);
 
     const removeToast = useCallback((id) => {
@@ -104,7 +181,6 @@ export const ToastProvider = ({ children }) => {
                         key={t.id}
                         message={t.message}
                         type={t.type}
-                        important={t.important}
                         durationMs={t.durationMs}
                         onClose={() => removeToast(t.id)}
                     />
@@ -116,7 +192,6 @@ export const ToastProvider = ({ children }) => {
                         key={t.id}
                         message={t.message}
                         type={t.type}
-                        important={t.important}
                         durationMs={t.durationMs}
                         onClose={() => removeToast(t.id)}
                     />

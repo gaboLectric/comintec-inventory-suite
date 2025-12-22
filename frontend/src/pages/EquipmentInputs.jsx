@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SimpleTable } from '../components/SimpleTable';
-import { EquipmentInputForm, ButtonStyled } from '../components/FormComponents';
+import { EquipmentInputForm } from '../components/FormComponents';
+import { GlassButton } from '../components/GlassButton';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
 import { getEquipmentInputs, createEquipmentInput, getUserLevel } from '../services/api';
@@ -147,10 +148,9 @@ export function EquipmentInputs() {
                             Mostrar todo el historial
                         </label>
                         {canCreate && (
-                            <ButtonStyled onClick={() => setIsModalOpen(true)}>
-                                <Plus size={20} className="mr-2" />
+                            <GlassButton variant="primary" onClick={() => setIsModalOpen(true)} icon={<Plus size={18} />}>
                                 Registrar Entrada
-                            </ButtonStyled>
+                            </GlassButton>
                         )}
                     </div>
                 }

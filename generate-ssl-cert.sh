@@ -3,7 +3,7 @@
 # Script para generar certificado SSL autofirmado para red local
 # Uso: ./generate-ssl-cert.sh [IP_DE_TU_MAQUINA]
 
-IP=${1:-"192.168.1.100"}  # Cambia por tu IP local
+IP=${1:-"192.168.88.2"}  # Cambia por tu IP local
 DOMAIN="localhost"
 
 echo "Generando certificado SSL para IP: $IP"
