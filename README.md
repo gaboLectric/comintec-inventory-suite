@@ -16,8 +16,21 @@ Sistema de Inventario Modernizado utilizando PocketBase, React y Bun.
 
 ## Ejecución
 
+La forma más fácil de iniciar la aplicación es usando el script maestro:
+
 ```bash
-# Construir e iniciar los contenedores
+./start.sh
+```
+
+Te permitirá elegir entre:
+1. **Dev (HTTP)**: Desarrollo rápido local.
+2. **Dev (HTTPS)**: Para probar cámara/móvil en red local.
+3. **Prod Sim**: Simulación de entorno de producción con Nginx.
+
+Alternativamente, puedes usar Docker Compose directamente:
+
+```bash
+# Desarrollo básico
 docker-compose up --build
 ```
 
