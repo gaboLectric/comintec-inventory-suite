@@ -40,3 +40,9 @@ frontend/.vite/
 Thumbs.db
 
 .node_modules/
+
+# Security
+docker/ssl/
+*.key
+*.crt
+*.pem

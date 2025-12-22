@@ -79,7 +79,10 @@ export function EquipmentInputs() {
             }
             
             // Create the equipment input with media_id if file was uploaded
-            const inputData = { ...data };
+            const inputData = { 
+                ...data,
+                fecha: new Date().toISOString() // Ensure date is set to now
+            };
             delete inputData.file; // Remove file from data
             if (mediaId) {
                 inputData.media_id = mediaId;
