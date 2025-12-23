@@ -221,13 +221,15 @@ const FormGroup = styled.div`
 const Label = styled.label`
     font-size: var(--font-size-sm);
     font-weight: 600;
-    color: #374151;
+    color: #374151 !important;
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    margin-bottom: var(--space-1);
     
     svg {
         opacity: 0.7;
+        color: #6b7280 !important;
     }
 `;
 
@@ -238,24 +240,75 @@ const InputContainer = styled.div`
 `;
 
 const StyledInput = styled(GlassInput)`
-    /* Light theme input styling */
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    color: #0f172a;
-    
-    &::placeholder {
-        color: #9ca3af;
+    /* Light theme input styling - override GlassInput defaults */
+    input {
+        background: rgba(255, 255, 255, 0.9) !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        color: #0f172a !important;
+        font-size: var(--font-size-md) !important;
+        font-family: var(--font-family) !important;
+        line-height: 1.5 !important;
+        
+        &::placeholder {
+            color: #9ca3af !important;
+            opacity: 1 !important;
+        }
+        
+        &:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            outline: none !important;
+        }
+        
+        &:hover:not(:focus) {
+            border-color: rgba(0, 0, 0, 0.25) !important;
+        }
+        
+        &:disabled {
+            opacity: 0.6 !important;
+            cursor: not-allowed !important;
+            background: rgba(255, 255, 255, 0.7) !important;
+        }
+        
+        /* Ensure text is always visible and editable */
+        -webkit-text-fill-color: #0f172a !important;
+        -webkit-opacity: 1 !important;
+        
+        /* Remove any conflicting styles */
+        -webkit-appearance: none !important;
+        appearance: none !important;
+        
+        /* Ensure proper text selection */
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        user-select: text !important;
+        
+        /* Fix for some browsers */
+        &:-webkit-autofill,
+        &:-webkit-autofill:hover,
+        &:-webkit-autofill:focus {
+            -webkit-text-fill-color: #0f172a !important;
+            -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.9) inset !important;
+            transition: background-color 5000s ease-in-out 0s !important;
+        }
     }
     
-    &:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        background: rgba(255, 255, 255, 0.95);
+    /* Desktop: ensure proper sizing */
+    @media (min-width: 768px) {
+        input {
+            font-size: var(--font-size-md) !important;
+            min-height: 48px !important;
+            padding: var(--space-3) var(--space-4) !important;
+        }
     }
     
     /* Mobile: ensure minimum font size to prevent zoom on iOS */
     @media (max-width: 767px) {
-        font-size: max(16px, var(--font-size-md)) !important;
+        input {
+            font-size: max(16px, var(--font-size-md)) !important;
+            min-height: 52px !important;
+        }
     }
 `;
 
@@ -264,7 +317,7 @@ const PasswordToggle = styled.button`
     right: var(--space-3);
     background: none;
     border: none;
-    color: #6b7280;
+    color: #6b7280 !important;
     cursor: pointer;
     padding: var(--space-1);
     border-radius: var(--radius-sm);
@@ -272,15 +325,29 @@ const PasswordToggle = styled.button`
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 10;
     
     &:hover {
-        color: #374151;
-        background: rgba(0, 0, 0, 0.05);
+        color: #374151 !important;
+        background: rgba(0, 0, 0, 0.05) !important;
     }
     
     &:focus-visible {
-        outline: 2px solid #3b82f6;
+        outline: 2px solid #3b82f6 !important;
         outline-offset: 2px;
+    }
+    
+    svg {
+        width: 18px !important;
+        height: 18px !important;
+        color: inherit !important;
+    }
+    
+    /* Desktop: proper sizing */
+    @media (min-width: 768px) {
+        min-width: 40px;
+        min-height: 40px;
+        right: var(--space-3);
     }
     
     /* Mobile: larger touch target */
