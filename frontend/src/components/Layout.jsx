@@ -424,11 +424,20 @@ const ContentArea = styled.div`
   flex: 1;
   padding: var(--space-6);
   background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
   
-  /* Transición de página */
+  /* Enhanced page transitions */
   & > * {
-    animation: pageEnter 0.2s ease-out;
+    animation: pageEnter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation-fill-mode: both;
   }
+  
+  /* Staggered animation for child elements */
+  & > *:nth-child(1) { animation-delay: 0ms; }
+  & > *:nth-child(2) { animation-delay: 50ms; }
+  & > *:nth-child(3) { animation-delay: 100ms; }
+  & > *:nth-child(4) { animation-delay: 150ms; }
   
   /* Mobile optimizations */
   @media (max-width: 767px) {
@@ -446,6 +455,11 @@ const ContentArea = styled.div`
     @media (max-height: 599px) {
       padding: var(--space-2) var(--space-3);
     }
+    
+    /* Faster animations on mobile for better performance */
+    & > * {
+      animation-duration: 0.2s;
+    }
   }
   
   /* Keyboard visibility handling */
@@ -456,6 +470,9 @@ const ContentArea = styled.div`
       padding-bottom: calc(var(--space-3) + ${props.$keyboardHeight}px);
     }
   `}
+  
+  /* Smooth transitions for layout changes */
+  transition: padding-bottom var(--transition-normal) ease-out;
 `;
 
 // Niveles de permisos (igual que sistema legacy):
@@ -502,9 +519,40 @@ export function Layout() {
   const viewport = useViewport();
   const keyboardState = useKeyboardHeight();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pageTransition, setPageTransition] = useState('pageEnter');
+  const [previousPath, setPreviousPath] = useState(location.pathname);
 
   const avatarUrl = user?.avatar ? pb.files.getUrl(user, user.avatar) : null;
   const displayName = user?.name || user?.username || user?.email || 'Usuario';
+
+  // Handle page transitions based on route changes
+  useEffect(() => {
+    if (previousPath !== location.pathname) {
+      // Determine transition type based on navigation pattern
+      const getTransitionType = (from, to) => {
+        // Dashboard to any page
+        if (from === '/' && to !== '/') return 'slideInFromRight';
+        // Any page back to dashboard
+        if (from !== '/' && to === '/') return 'slideInFromLeft';
+        // Between similar sections (almacen, salidas)
+        if (from.includes('/almacen') && to.includes('/almacen')) return 'fadeInUp';
+        if (from.includes('/salidas') && to.includes('/salidas')) return 'fadeInUp';
+        // Default smooth transition
+        return 'pageEnter';
+      };
+
+      const transitionType = getTransitionType(previousPath, location.pathname);
+      setPageTransition(transitionType);
+      setPreviousPath(location.pathname);
+
+      // Reset transition after animation completes
+      const timer = setTimeout(() => {
+        setPageTransition('pageEnter');
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, previousPath]);
 
   // Close sidebar when route changes on mobile
   useEffect(() => {
@@ -736,6 +784,7 @@ export function Layout() {
           $keyboardVisible={keyboardState.isVisible}
           $keyboardHeight={keyboardState.height}
           className={`
+            page-transition-${pageTransition}
             ${viewport.isLandscape && viewport.isMobile ? 'mobile-content-landscape' : ''}
             ${viewport.isPortrait && viewport.isMobile ? 'mobile-content-portrait' : ''}
             ${viewport.isShortViewport ? 'short-viewport-content' : ''}

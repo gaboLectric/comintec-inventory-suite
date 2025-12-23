@@ -16,6 +16,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(pb.authStore.model);
     const [loading, setLoading] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
     const toast = useToast();
 
     const enforceAuthValidity = useCallback((options = {}) => {
@@ -23,6 +24,7 @@ export const AuthProvider = ({ children }) => {
 
         // If token expired but model is still present, force logout.
         if (pb.authStore.model && !pb.authStore.isValid) {
+            console.log('Token expired, clearing auth store');
             pb.authStore.clear();
             setUser(null);
 
@@ -33,28 +35,59 @@ export const AuthProvider = ({ children }) => {
                     durationMs: 6000,
                 });
             }
+            return false;
         }
+        return true;
     }, [toast]);
 
+    // Initialize auth state on mount
     useEffect(() => {
+        console.log('Initializing auth state...');
+        console.log('Auth store model:', pb.authStore.model);
+        console.log('Auth store isValid:', pb.authStore.isValid);
+        
+        // Set initial user state
+        setUser(pb.authStore.model);
+        
+        // Check if current auth is valid
+        enforceAuthValidity({ notify: false });
+        
+        setIsInitialized(true);
+    }, [enforceAuthValidity]);
+
+    useEffect(() => {
+        if (!isInitialized) return;
+
         // Sincronizar estado con el store de PocketBase
         const unsubscribe = pb.authStore.onChange((token, model) => {
+            console.log('Auth store changed:', { token: !!token, model: !!model });
             setUser(model);
 
             // En algunos casos el modelo queda cargado aunque el token ya no sea válido.
             // Forzamos logout en cuanto detectamos expiración.
-            enforceAuthValidity({ notify: true });
+            if (model) {
+                enforceAuthValidity({ notify: true });
+            }
         });
 
         // Watchdog: el SDK no dispara eventos automáticamente al expirar el token.
         // Revisamos periódicamente y también al volver al tab/ventana.
         const intervalId = setInterval(() => {
-            enforceAuthValidity({ notify: true });
-        }, 15000);
+            if (pb.authStore.model) {
+                enforceAuthValidity({ notify: true });
+            }
+        }, 30000); // Check every 30 seconds instead of 15
 
-        const onFocus = () => enforceAuthValidity({ notify: true });
+        const onFocus = () => {
+            if (pb.authStore.model) {
+                enforceAuthValidity({ notify: true });
+            }
+        };
+        
         const onVisibilityChange = () => {
-            if (!document.hidden) enforceAuthValidity({ notify: true });
+            if (!document.hidden && pb.authStore.model) {
+                enforceAuthValidity({ notify: true });
+            }
         };
 
         window.addEventListener('focus', onFocus);
@@ -66,18 +99,22 @@ export const AuthProvider = ({ children }) => {
             window.removeEventListener('focus', onFocus);
             document.removeEventListener('visibilitychange', onVisibilityChange);
         };
-    }, [enforceAuthValidity]);
+    }, [enforceAuthValidity, isInitialized]);
 
     const login = async (username, password) => {
         setLoading(true);
         try {
+            console.log('Attempting login...');
             // Intentar login contra la colección 'users'
             await pb.collection('users').authWithPassword(username, password);
+            console.log('User login successful');
             return { success: true };
         } catch (error) {
+            console.log('User login failed, trying admin login...');
             // Si falla, intentar como Admin de PocketBase
             try {
                 await pb.admins.authWithPassword(username, password);
+                console.log('Admin login successful');
                 return { success: true };
             } catch (adminError) {
                 console.error('User login error:', error);
@@ -93,37 +130,46 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const logout = () => {
+    const logout = useCallback(() => {
+        console.log('Logging out...');
         pb.authStore.clear();
         setUser(null);
-    };
+        
+        // Force a page reload to ensure clean state
+        // This helps prevent any cached state issues
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 100);
+    }, []);
 
     // Verificar si el usuario tiene el nivel requerido
     // Adaptado para PocketBase: asumimos que el registro de usuario tiene un campo 'user_level'
     // Si no existe, por defecto asumimos nivel 3 (User)
-    const hasPermission = (requiredLevel) => {
-        if (!user) return false;
+    const hasPermission = useCallback((requiredLevel) => {
+        if (!user || !pb.authStore.isValid) return false;
         // Si es superusuario (Admin de PocketBase), tiene acceso total (nivel 1 virtual)
         if (pb.authStore.isSuperuser) return true;
         
         const level = user.user_level || 3; 
         return level <= requiredLevel;
-    };
+    }, [user]);
 
     // Verificar si es admin
-    const isAdmin = () => {
-        if (!user) return false;
+    const isAdmin = useCallback(() => {
+        if (!user || !pb.authStore.isValid) return false;
         // Si es admin de PocketBase (pb.authStore.isSuperuser) o tiene nivel 1
-        // Nota: isAdmin está deprecado en versiones recientes del SDK
-        return pb.authStore.isSuperuser || pb.authStore.isAdmin || (user.user_level === 1);
-    };
+        return pb.authStore.isSuperuser || (user.user_level === 1);
+    }, [user]);
 
     // Verificar si es special o admin
-    const isSpecial = () => {
-        if (!user) return false;
+    const isSpecial = useCallback(() => {
+        if (!user || !pb.authStore.isValid) return false;
         const level = user.user_level || 3;
         return level <= 2;
-    };
+    }, [user]);
+
+    // Computed authentication state
+    const isAuthenticated = Boolean(user && pb.authStore.isValid);
 
     const value = {
         user,
@@ -132,13 +178,13 @@ export const AuthProvider = ({ children }) => {
         hasPermission,
         isAdmin,
         isSpecial,
-        isAuthenticated: Boolean(user && pb.authStore.isValid),
-        loading
+        isAuthenticated,
+        loading: loading || !isInitialized
     };
 
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {isInitialized && children}
         </AuthContext.Provider>
     );
 };

@@ -89,7 +89,7 @@ export function SidebarItem({ icon: Icon, label, to }) {
   const isActive = location.pathname === to;
 
   return (
-    <StyledLink to={to} $active={isActive}>
+    <StyledLink to={to} $active={isActive} className="sidebar-item">
       {Icon && <Icon />}
       <span>{label}</span>
     </StyledLink>
