@@ -24,8 +24,9 @@ const ResponsiveContainer = styled.div`
   overflow: hidden;
   box-shadow: var(--glass-shadow);
   transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
   
-  /* Fallback for browsers without backdrop-filter support */
   @supports not (backdrop-filter: blur(16px)) {
     background: var(--bg-secondary);
     border-color: var(--border-color-strong);
@@ -36,7 +37,22 @@ const ResponsiveContainer = styled.div`
     box-shadow: var(--glass-shadow-elevated);
   }
   
-  /* CSS animation for loading spinner */
+  /* Mobile: ensure proper height adaptation */
+  @media (max-width: 767px) {
+    max-height: calc(100vh - 180px);
+    max-height: calc(100dvh - 180px);
+    
+    @media (orientation: landscape) {
+      max-height: calc(100vh - 120px);
+      max-height: calc(100dvh - 120px);
+    }
+    
+    @media (max-height: 599px) {
+      max-height: calc(100vh - 100px);
+      max-height: calc(100dvh - 100px);
+    }
+  }
+  
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -131,8 +147,11 @@ const MobileCardList = styled.div`
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
   
-  /* Smaller padding on small mobile */
   @media (max-width: 479px) {
     padding: var(--space-3);
     gap: var(--space-2);

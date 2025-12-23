@@ -26,10 +26,17 @@ import {
 const LayoutContainer = styled.div`
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
+  height: 100%;
   background: var(--bg-primary);
   font-family: var(--font-family);
   color: var(--font-color-primary);
   transition: background 0.3s ease, color 0.3s ease;
+  
+  @media (max-width: 767px) {
+    flex-direction: column;
+    overflow: hidden;
+  }
 `;
 
 const Sidebar = styled.aside`
@@ -274,10 +281,14 @@ const MainContent = styled.main`
   flex-direction: column;
   background: var(--bg-primary);
   transition: background 0.3s ease;
+  min-height: 100vh;
+  min-height: 100dvh;
   
-  /* Mobile styles */
   @media (max-width: 767px) {
     margin-left: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
 `;
 
@@ -426,54 +437,40 @@ const ContentArea = styled.div`
   padding: var(--space-6);
   background: var(--bg-primary);
   position: relative;
-  overflow: hidden;
-  
-  /* Enhanced page transitions */
-  & > * {
-    animation: pageEnter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    animation-fill-mode: both;
-  }
-  
-  /* Staggered animation for child elements */
-  & > *:nth-child(1) { animation-delay: 0ms; }
-  & > *:nth-child(2) { animation-delay: 50ms; }
-  & > *:nth-child(3) { animation-delay: 100ms; }
-  & > *:nth-child(4) { animation-delay: 150ms; }
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   
   /* Mobile optimizations */
   @media (max-width: 767px) {
+    height: 100%;
+    
     /* Portrait: optimize for vertical space */
     @media (orientation: portrait) {
       padding: var(--space-4) var(--space-3);
+      padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
     }
     
     /* Landscape: more compact padding */
     @media (orientation: landscape) {
       padding: var(--space-3);
+      padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
     }
     
     /* Short viewport: minimal padding */
     @media (max-height: 599px) {
       padding: var(--space-2) var(--space-3);
-    }
-    
-    /* Faster animations on mobile for better performance */
-    & > * {
-      animation-duration: 0.2s;
+      padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
     }
   }
   
-  /* Keyboard visibility handling */
   ${props => props.$keyboardVisible && `
     padding-bottom: calc(var(--space-6) + ${props.$keyboardHeight}px);
     
     @media (max-width: 767px) {
-      padding-bottom: calc(var(--space-3) + ${props.$keyboardHeight}px);
+      padding-bottom: calc(var(--space-3) + ${props.$keyboardHeight}px + env(safe-area-inset-bottom, 0px));
     }
   `}
-  
-  /* Smooth transitions for layout changes */
-  transition: padding-bottom var(--transition-normal) ease-out;
 `;
 
 // Niveles de permisos (igual que sistema legacy):

@@ -76,36 +76,35 @@ const ModalContainer = styled.div`
   box-shadow: var(--glass-shadow-elevated);
   display: flex;
   flex-direction: column;
-  
-  /* Accessibility: Focus trap container */
   outline: none;
   
-  /* Mobile: Full screen modal */
   @media (max-width: 767px) {
     width: 100vw;
     height: 100vh;
-    height: 100dvh; /* Dynamic viewport height for mobile browsers */
+    height: 100dvh;
     max-height: 100vh;
     max-height: 100dvh;
     border-radius: 0;
     border: none;
     animation: ${slideUp} var(--transition-normal);
     
-    /* Landscape: Optimize for horizontal space */
-    @media (orientation: landscape) {
-      /* Keep full screen but ensure content is accessible */
-      height: 100vh;
-      height: 100dvh;
-    }
-    
-    /* Short viewport: Ensure modal fits */
+    /* Ensure modal fits in short viewports */
     @media (max-height: 599px) {
       height: 100vh;
       height: 100dvh;
+      max-height: 100vh;
+      max-height: 100dvh;
+    }
+    
+    /* Landscape: ensure content is accessible */
+    @media (orientation: landscape) and (max-height: 500px) {
+      height: 100vh;
+      height: 100dvh;
+      max-height: 100vh;
+      max-height: 100dvh;
     }
   }
   
-  /* Desktop: Centered modal */
   @media (min-width: 768px) {
     border-radius: var(--radius-xl);
     max-width: ${props => {
@@ -115,22 +114,20 @@ const ModalContainer = styled.div`
     }};
     width: 100%;
     max-height: 90vh;
+    max-height: 90dvh;
     animation: ${scaleIn} var(--transition-normal);
   }
   
-  /* Fallback for browsers without backdrop-filter support */
   @supports not (backdrop-filter: blur(24px)) {
     background: var(--bg-secondary);
     border-color: var(--border-color-strong);
   }
   
-  /* High contrast mode support */
   @media (prefers-contrast: high) {
     border: 3px solid currentColor;
     background: var(--bg-primary);
   }
   
-  /* Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }

@@ -12,8 +12,9 @@ const TableContainer = styled.div`
   overflow: hidden;
   box-shadow: var(--glass-shadow);
   transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
   
-  /* Fallback for browsers without backdrop-filter support */
   @supports not (backdrop-filter: blur(16px)) {
     background: var(--bg-secondary);
     border-color: var(--border-color-strong);
@@ -22,6 +23,22 @@ const TableContainer = styled.div`
   &:hover {
     border-color: var(--glass-border-hover);
     box-shadow: var(--glass-shadow-elevated);
+  }
+  
+  /* Mobile: ensure proper height adaptation */
+  @media (max-width: 767px) {
+    max-height: calc(100vh - 180px);
+    max-height: calc(100dvh - 180px);
+    
+    @media (orientation: landscape) {
+      max-height: calc(100vh - 120px);
+      max-height: calc(100dvh - 120px);
+    }
+    
+    @media (max-height: 599px) {
+      max-height: calc(100vh - 100px);
+      max-height: calc(100dvh - 100px);
+    }
   }
 `;
 
@@ -230,7 +247,12 @@ export const SimpleTable = React.memo(function SimpleTable({ title, columns, dat
                     {actions}
                 </div>
             </TableHeader>
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ 
+              overflowX: 'auto', 
+              overflowY: 'auto', 
+              flex: 1,
+              WebkitOverflowScrolling: 'touch'
+            }}>
                 <Table>
                     <Thead>
                         <tr>
