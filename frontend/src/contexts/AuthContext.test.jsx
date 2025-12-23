@@ -20,6 +20,7 @@ vi.mock('../services/pocketbase', () => ({
             model: null,
             onChange: vi.fn(() => () => {}),
             clear: vi.fn(),
+            get isValid() { return true; },
             get isSuperuser() { return false; },
             get isAdmin() { return false; }
         },
@@ -30,6 +31,13 @@ vi.mock('../services/pocketbase', () => ({
             authWithPassword: vi.fn()
         }
     }
+}));
+
+// Mock Toast
+vi.mock('../components/Toast', () => ({
+    useToast: () => ({
+        addToast: vi.fn()
+    })
 }));
 
 const TestComponent = () => {
@@ -51,6 +59,7 @@ describe('AuthContext', () => {
         pb.authStore.model = null;
         // Reset getters
         Object.defineProperty(pb.authStore, 'isSuperuser', { get: () => false });
+        Object.defineProperty(pb.authStore, 'isValid', { get: () => true });
     });
 
     it('should render children', () => {
@@ -63,16 +72,23 @@ describe('AuthContext', () => {
     });
 
     it('should set loading state during login', async () => {
-        pb.collection().authWithPassword.mockImplementation(async () => {
-            await new Promise(resolve => setTimeout(resolve, 50));
-            return {};
+        let resolveLogin;
+        const loginPromise = new Promise(resolve => {
+            resolveLogin = resolve;
         });
+        
+        pb.collection().authWithPassword.mockImplementation(() => loginPromise);
 
         render(
             <AuthProvider>
                 <TestComponent />
             </AuthProvider>
         );
+
+        // Wait for initialization to complete
+        await waitFor(() => {
+            expect(screen.getByTestId('loading')).toHaveTextContent('Idle');
+        });
 
         const loginBtn = screen.getByText('Login');
         
@@ -81,18 +97,26 @@ describe('AuthContext', () => {
             loginBtn.click();
         });
 
-        // Should be loading immediately -> Children unmounted because of {!loading && children}
-        expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
-
+        // Should be loading immediately after click
         await waitFor(() => {
-            // Should reappear
+            expect(screen.getByTestId('loading')).toHaveTextContent('Loading');
+        });
+
+        // Resolve the login
+        act(() => {
+            resolveLogin({});
+        });
+
+        // Should return to idle state after login completes
+        await waitFor(() => {
             expect(screen.getByTestId('loading')).toHaveTextContent('Idle');
         });
     });
 
-    it('should correctly identify superuser as admin', () => {
+    it('should correctly identify superuser as admin', async () => {
         pb.authStore.model = { email: 'admin@example.com' };
         Object.defineProperty(pb.authStore, 'isSuperuser', { get: () => true });
+        Object.defineProperty(pb.authStore, 'isValid', { get: () => true });
 
         render(
             <AuthProvider>
@@ -100,6 +124,9 @@ describe('AuthContext', () => {
             </AuthProvider>
         );
 
-        expect(screen.getByTestId('is-admin')).toHaveTextContent('Admin');
+        // Wait for initialization
+        await waitFor(() => {
+            expect(screen.getByTestId('is-admin')).toHaveTextContent('Admin');
+        });
     });
 });
