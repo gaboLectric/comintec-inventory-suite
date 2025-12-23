@@ -12,14 +12,14 @@ import { GlassCard } from './GlassCard';
 const CardContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: 100%;
 `;
 
 const CardHeader = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: var(--space-3);
+  gap: var(--space-2);
   padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--glass-border);
 `;

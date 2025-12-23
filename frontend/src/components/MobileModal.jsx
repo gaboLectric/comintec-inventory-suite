@@ -146,8 +146,6 @@ const ModalHeader = styled.div`
   
   /* Mobile: Sticky header with safe area */
   @media (max-width: 767px) {
-    position: sticky;
-    top: 0;
     z-index: 10;
     padding: var(--space-4);
     padding-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
@@ -269,7 +267,7 @@ const ModalBody = styled.div`
   @media (max-width: 767px) {
     padding: var(--space-4);
     padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
-    height: 100%;
+    min-height: 0; /* Allow flex child to shrink */
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     
     /* Landscape: More compact padding to save space */
@@ -304,8 +302,6 @@ const ModalActions = styled.div`
   
   /* Mobile: Fixed bottom actions with safe area */
   @media (max-width: 767px) {
-    position: sticky;
-    bottom: 0;
     z-index: 10;
     padding: var(--space-4);
     padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));

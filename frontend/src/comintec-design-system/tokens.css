@@ -305,3 +305,19 @@
 /* Helpers: asigna variables a clases utilitarias si lo deseas */
 .btn { font-family: var(--font-family); }
 .table { box-shadow: var(--shadow-light); }
+
+/* Mobile Overrides for Typography and Spacing */
+@media (max-width: 767px) {
+  :root {
+    --font-size-sm: 0.8125rem;  /* 13px */
+    --font-size-md: 0.9375rem;  /* 15px */
+    --font-size-lg: 1rem;       /* 16px */
+    --font-size-xl: 1.125rem;   /* 18px */
+    --font-size-xxl: 1.25rem;   /* 20px */
+    --font-size-xxxl: 1.5rem;   /* 24px */
+    
+    --space-4: 12px;
+    --space-5: 16px;
+    --space-6: 20px;
+  }
+}

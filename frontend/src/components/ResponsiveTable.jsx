@@ -39,17 +39,17 @@ const ResponsiveContainer = styled.div`
   
   /* Mobile: ensure proper height adaptation */
   @media (max-width: 767px) {
-    max-height: calc(100vh - 180px);
-    max-height: calc(100dvh - 180px);
+    max-height: calc(100vh - 140px);
+    max-height: calc(100dvh - 140px);
     
     @media (orientation: landscape) {
-      max-height: calc(100vh - 120px);
-      max-height: calc(100dvh - 120px);
+      max-height: calc(100vh - 100px);
+      max-height: calc(100dvh - 100px);
     }
     
     @media (max-height: 599px) {
-      max-height: calc(100vh - 100px);
-      max-height: calc(100dvh - 100px);
+      max-height: calc(100vh - 80px);
+      max-height: calc(100dvh - 80px);
     }
   }
   

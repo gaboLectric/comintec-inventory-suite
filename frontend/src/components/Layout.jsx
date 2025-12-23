@@ -441,6 +441,11 @@ const ContentArea = styled.div`
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   
+  /* Mobile: Reduce padding to save space */
+  @media (max-width: 767px) {
+    padding: var(--space-4);
+  }
+  
   /* Enhanced page transitions */
   & > * {
     /* Animation is handled by page-transition classes in app.css */

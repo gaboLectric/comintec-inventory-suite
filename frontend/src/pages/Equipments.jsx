@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import styled from '@emotion/styled';
 import { ResponsiveTable } from '../components/ResponsiveTable';
 import { EquipmentCard } from '../components/EquipmentCard';
 import { MobileImageModal } from '../components/MobileModal';
@@ -14,6 +15,41 @@ import { ImportModal } from '../components/ImportModal';
 import { GlassButton } from '../components/GlassButton';
 import { exportData } from '../services/importService';
 import { getErrorMessage } from '../utils/errorHandler';
+
+const TableActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+
+    @media (max-width: 767px) {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-3);
+
+        & > * {
+            width: 100%;
+        }
+    }
+`;
+
+const SoldToggleLabel = styled.label`
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+    color: var(--font-color-secondary);
+    cursor: pointer;
+    user-select: none;
+
+    @media (max-width: 767px) {
+        justify-content: flex-start;
+        padding: var(--space-2) var(--space-3);
+        background: var(--glass-bg-medium);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-sm);
+    }
+`;
 
 export function Equipments() {
     const [equipments, setEquipments] = useState([]);
@@ -212,7 +248,7 @@ export function Equipments() {
                     onSearch={handleSearch}
                     isSearching={isSearching}
                     actions={
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <TableActions>
                             {isAdmin && (
                                 <>
                                     <GlassButton onClick={() => setIsImportModalOpen(true)} variant="secondary" icon={<Upload size={16} />}>
@@ -223,7 +259,7 @@ export function Equipments() {
                                     </GlassButton>
                                 </>
                             )}
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--font-color-secondary)', cursor: 'pointer' }}>
+                            <SoldToggleLabel>
                                 <input 
                                     type="checkbox" 
                                     checked={showSold} 
@@ -231,8 +267,8 @@ export function Equipments() {
                                     style={{ accentColor: 'var(--brand-blue-9)' }}
                                 />
                                 Mostrar Vendidos
-                            </label>
-                        </div>
+                            </SoldToggleLabel>
+                        </TableActions>
                     }
                     pagination={{
                         page,

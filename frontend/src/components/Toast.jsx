@@ -1,4 +1,4 @@
-import React, { useEffect, createContext, useContext, useState, useCallback } from 'react';
+import React, { useEffect, createContext, useContext, useState, useCallback, useRef } from 'react';
 import styled from '@emotion/styled';
 import { X, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
@@ -10,6 +10,15 @@ const ToastContainer = styled.div`
   display: flex;
   flex-direction: column;
     gap: var(--space-3);
+
+  /* Mobile: use full width and safe padding */
+  @media (max-width: 767px) {
+    left: var(--space-3);
+    right: var(--space-3);
+    ${props => props.$placement === 'top-right' ? 'top: var(--space-3);' : 'bottom: var(--space-3);'}
+    gap: var(--space-2);
+    pointer-events: none; /* container doesn't block UI */
+  }
 `;
 
 const ToastItem = styled.div`
@@ -34,6 +43,14 @@ const ToastItem = styled.div`
   animation: slideInGlass var(--transition-normal) ease-out;
   color: var(--font-color-primary);
   transition: all var(--transition-fast);
+
+  @media (max-width: 767px) {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+    padding: var(--space-3);
+    pointer-events: auto; /* allow close button */
+  }
   
   /* Fallback for browsers without backdrop-filter support */
   @supports not (backdrop-filter: blur(24px)) {
@@ -160,8 +177,17 @@ const ToastContext = createContext();
 
 export const ToastProvider = ({ children }) => {
     const [toasts, setToasts] = useState([]);
+  const lastShownRef = useRef(new Map());
 
     const addToast = useCallback((message, type = 'info', options = {}) => {
+    // De-dupe identical toasts (e.g. network flaps) to keep UI usable.
+    const dedupeWindowMs = typeof options?.dedupeWindowMs === 'number' ? options.dedupeWindowMs : 4000;
+    const key = `${type}::${String(message)}`;
+    const now = Date.now();
+    const last = lastShownRef.current.get(key);
+    if (last && now - last < dedupeWindowMs) return;
+    lastShownRef.current.set(key, now);
+
         const id = Date.now() + Math.random();
         const placement = options?.placement === 'top-right' ? 'top-right' : 'bottom-right';
         const durationMs = typeof options?.durationMs === 'number' ? options.durationMs : 5000;
