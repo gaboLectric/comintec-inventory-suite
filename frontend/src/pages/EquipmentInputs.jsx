@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SimpleTable } from '../components/SimpleTable';
 import { EquipmentInputForm } from '../components/FormComponents';
 import { GlassButton } from '../components/GlassButton';
-import { Modal } from '../components/Modal';
+import { MobileModal } from '../components/MobileModal';
 import { useToast } from '../components/Toast';
 import { getEquipmentInputs, createEquipmentInput, getUserLevel } from '../services/api';
 import pb from '../services/pocketbase';
@@ -156,7 +156,7 @@ export function EquipmentInputs() {
                 }
             />
 
-            <Modal
+            <MobileModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 title="Registrar Entrada de Equipo"
@@ -165,7 +165,7 @@ export function EquipmentInputs() {
                     onSubmit={handleCreate}
                     onCancel={() => setIsModalOpen(false)}
                 />
-            </Modal>
+            </MobileModal>
         </div>
     );
 }

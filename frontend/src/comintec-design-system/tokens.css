@@ -1,31 +1,48 @@
 :root {
-  /* Typography - Enhanced for mobile-first */
+  /* Typography - Enhanced for mobile-first readability */
   --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, system-ui, sans-serif;
   --font-size-xxs: 0.625rem; /* 10px */
-  --font-size-xs: 0.75rem;   /* 12px - improved mobile readability */
-  --font-size-sm: 0.875rem;  /* 14px - improved mobile readability */
-  --font-size-md: 1rem;      /* 16px - base size for body text */
-  --font-size-lg: 1.125rem;  /* 18px - improved mobile readability */
-  --font-size-xl: 1.25rem;   /* 20px - improved mobile readability */
-  --font-size-xxl: 1.5rem;   /* 24px - improved mobile readability */
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px - minimum for mobile readability */
+  --font-size-md: 1rem;      /* 16px - base size, prevents iOS zoom */
+  --font-size-lg: 1.125rem;  /* 18px - enhanced mobile readability */
+  --font-size-xl: 1.25rem;   /* 20px - section headings */
+  --font-size-xxl: 1.5rem;   /* 24px - page headings */
+  --font-size-xxxl: 1.75rem; /* 28px - hero headings */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
-  --font-weight-bold: 700;   /* Added for headings */
-  --line-height-tight: 1.25; /* For headings */
-  --line-height-md: 1.4;     /* Improved readability */
-  --line-height-lg: 1.6;     /* For body text */
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25; /* For headings and compact text */
+  --line-height-md: 1.4;     /* Balanced readability */
+  --line-height-lg: 1.6;     /* Enhanced body text readability */
+  --line-height-xl: 1.8;     /* Maximum readability for long text */
 
-  /* Spacing scale (4px base) */
+  /* Enhanced spacing scale (4px base) - Optimized for mobile touch */
   --space-0: 0px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 28px;
-  --space-8: 32px;
+  --space-1: 4px;   /* Minimal spacing */
+  --space-2: 8px;   /* Touch target spacing minimum */
+  --space-3: 12px;  /* Comfortable element spacing */
+  --space-4: 16px;  /* Standard component padding */
+  --space-5: 20px;  /* Generous component padding */
+  --space-6: 24px;  /* Section spacing */
+  --space-7: 28px;  /* Large section spacing */
+  --space-8: 32px;  /* Maximum component spacing */
+  --space-9: 36px;  /* Extra large spacing */
+  --space-10: 40px; /* Hero spacing */
+  
+  /* Mobile-specific spacing overrides */
+  --mobile-space-xs: var(--space-2); /* 8px - minimum mobile spacing */
+  --mobile-space-sm: var(--space-3); /* 12px - small mobile spacing */
+  --mobile-space-md: var(--space-4); /* 16px - standard mobile spacing */
+  --mobile-space-lg: var(--space-5); /* 20px - large mobile spacing */
+  --mobile-space-xl: var(--space-6); /* 24px - extra large mobile spacing */
+  
+  /* Touch target specifications */
+  --touch-target-min: 44px;  /* iOS/Android minimum */
+  --touch-target-comfortable: 48px; /* Comfortable size */
+  --touch-target-large: 56px; /* Large touch targets */
+  --touch-spacing-min: 8px;   /* Minimum spacing between touch targets */
 
   /* Grayscale (Dark Mode) */
   --gray-1:  #111111;
@@ -110,11 +127,34 @@
   --shadow-underline: 0px 1px 0px 0px var(--grayA-9);
   --shadow-super-heavy: 0px 0px 8px 0px var(--grayA-7), 0px 8px 64px -16px var(--grayA-10), 0px 24px 56px -16px var(--grayA-5);
 
-  /* Animation durations */
+  /* Enhanced Animation System - Optimized for mobile performance */
   --anim-duration-instant: 0.075s;
   --anim-duration-fast: 0.15s;
-  --anim-duration-normal: 0.3s;
-  --anim-duration-slow: 1.5s;
+  --anim-duration-normal: 0.25s;
+  --anim-duration-slow: 0.35s;
+  --anim-duration-extra-slow: 0.5s;
+  
+  /* Smooth easing curves for better UX */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* Optimized transitions for mobile */
+  --transition-instant: var(--anim-duration-instant) var(--ease-out-quart);
+  --transition-fast: var(--anim-duration-fast) var(--ease-out-quart);
+  --transition-normal: var(--anim-duration-normal) var(--ease-out-expo);
+  --transition-slow: var(--anim-duration-slow) var(--ease-in-out-quart);
+  --transition-spring: var(--anim-duration-normal) var(--ease-spring);
+  
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    --transition-instant: 0ms;
+    --transition-fast: 0ms;
+    --transition-normal: 0ms;
+    --transition-slow: 0ms;
+    --transition-spring: 0ms;
+  }
 
   /* Buttons */
   --button-secondary-text-color: color(display-p3 0.4 0.4 0.4); /* approx ACCENT_DARK.accent11 */
@@ -151,23 +191,44 @@
   --brand-red-9: #e5484d;
   --brand-red-10: #d2343a;
 
-  /* Glass Effects - Optimized for low-end hardware */
-  --glass-blur-light: 8px;
-  --glass-blur-medium: 12px;
-  --glass-blur-strong: 16px;
+  /* Enhanced Glass Effects - Optimized for mobile performance and consistency */
+  --glass-blur-light: 6px;   /* Light blur for better mobile performance */
+  --glass-blur-medium: 10px; /* Medium blur for tablets */
+  --glass-blur-strong: 14px; /* Strong blur for desktop */
   
-  /* Glass Backgrounds - Dark Mode (más opacos = menos blur necesario) */
-  --glass-bg-light: rgba(30, 30, 30, 0.85);
-  --glass-bg-medium: rgba(35, 35, 35, 0.9);
-  --glass-bg-strong: rgba(40, 40, 40, 0.95);
+  /* Consistent Glass Backgrounds - Enhanced opacity for better readability */
+  --glass-bg-light: rgba(30, 30, 30, 0.88);   /* Light glass effect */
+  --glass-bg-medium: rgba(35, 35, 35, 0.92);  /* Medium glass effect */
+  --glass-bg-strong: rgba(40, 40, 40, 0.96);  /* Strong glass effect */
   
-  /* Glass Borders */
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-hover: rgba(255, 255, 255, 0.15);
+  /* Enhanced Glass Borders - More visible for better definition */
+  --glass-border: rgba(255, 255, 255, 0.12);        /* Standard border */
+  --glass-border-hover: rgba(255, 255, 255, 0.18);  /* Hover state */
+  --glass-border-focus: rgba(59, 130, 246, 0.4);    /* Focus state */
   
-  /* Glass Shadows */
-  --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  --glass-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.3);
+  /* Optimized Glass Shadows - Better depth perception */
+  --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  --glass-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --glass-shadow-floating: 0 12px 48px rgba(0, 0, 0, 0.4);
+  
+  /* Mobile-specific glass optimizations */
+  @media (max-width: 767px) {
+    --glass-blur-light: 4px;   /* Reduced for mobile performance */
+    --glass-blur-medium: 6px;
+    --glass-blur-strong: 8px;
+    
+    /* Higher opacity on mobile for better readability */
+    --glass-bg-light: rgba(30, 30, 30, 0.92);
+    --glass-bg-medium: rgba(35, 35, 35, 0.95);
+    --glass-bg-strong: rgba(40, 40, 40, 0.98);
+  }
+  
+  /* Performance fallbacks for low-end devices */
+  @media (max-resolution: 150dpi) {
+    --glass-blur-light: 2px;
+    --glass-blur-medium: 4px;
+    --glass-blur-strong: 6px;
+  }
   
   /* Accent Colors - Solid Vibrant Palette */
   --accent-blue: #3B82F6;
@@ -195,10 +256,10 @@
   --breakpoint-mobile: 768px;
   --breakpoint-tablet: 1024px;
   
-  /* Animation - Enhanced with accessibility */
-  --transition-fast: 150ms ease-out;
-  --transition-normal: 250ms ease-out;
-  --transition-slow: 350ms ease-out;
+  /* Enhanced Animation System - Consistent with new transition tokens */
+  --transition-fast: var(--anim-duration-fast) var(--ease-out-quart);
+  --transition-normal: var(--anim-duration-normal) var(--ease-out-expo);
+  --transition-slow: var(--anim-duration-slow) var(--ease-in-out-quart);
   
   /* Respect user's motion preferences */
   @media (prefers-reduced-motion: reduce) {

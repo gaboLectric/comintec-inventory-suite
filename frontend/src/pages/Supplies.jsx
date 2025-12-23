@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { SimpleTable } from '../components/SimpleTable';
+import { ResponsiveTable } from '../components/ResponsiveTable';
+import { SupplyCard } from '../components/SupplyCard';
 import { SupplyForm } from '../components/FormComponents';
 import { GlassButton } from '../components/GlassButton';
-import { Modal } from '../components/Modal';
+import { MobileModal } from '../components/MobileModal';
 import { ImportModal } from '../components/ImportModal';
 import { useToast } from '../components/Toast';
 import { getSupplies, createSupply, updateSupply, deleteSupply, getUserLevel, checkLowStock } from '../services/api';
@@ -159,7 +160,7 @@ export function Supplies() {
 
     return (
         <div>
-            <SimpleTable 
+            <ResponsiveTable 
                 title="Inventario de Insumos" 
                 columns={columns} 
                 data={supplies} 
@@ -189,9 +190,18 @@ export function Supplies() {
                         </div>
                     )
                 }
+                // Mobile card specific props
+                mobileCardRenderer={(supply) => (
+                    <SupplyCard
+                        supply={supply}
+                        canEdit={canEdit}
+                        onEdit={(sup) => { setEditingSupply(sup); setIsModalOpen(true); }}
+                        onDelete={handleDelete}
+                    />
+                )}
             />
 
-            <Modal 
+            <MobileModal 
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 
                 title={editingSupply ? 'Editar Insumo' : 'Nuevo Insumo'}
@@ -201,7 +211,7 @@ export function Supplies() {
                     onSubmit={handleSubmit} 
                     onCancel={() => setIsModalOpen(false)} 
                 />
-            </Modal>
+            </MobileModal>
 
             <ImportModal 
                 isOpen={isImportModalOpen} 

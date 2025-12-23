@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { Modal, ImageModal } from './Modal';
+import { MobileModal, MobileImageModal } from './MobileModal';
 import pb from '../services/pocketbase';
 
 const DetailRow = styled.div`
@@ -60,7 +60,7 @@ export function EquipmentDetailModal({ isOpen, onClose, equipment }) {
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} title="Detalles del Equipo">
+      <MobileModal isOpen={isOpen} onClose={onClose} title="Detalles del Equipo">
         {imageUrl && (
           <ImageContainer onClick={() => setIsImageExpanded(true)}>
             <img src={imageUrl} alt={equipment.producto} />
@@ -101,9 +101,9 @@ export function EquipmentDetailModal({ isOpen, onClose, equipment }) {
           <DetailLabel>Observaciones</DetailLabel>
           <DetailValue>{equipment.observaciones || '-'}</DetailValue>
         </DetailRow>
-      </Modal>
+      </MobileModal>
 
-      <ImageModal 
+      <MobileImageModal 
         isOpen={isImageExpanded} 
         onClose={() => setIsImageExpanded(false)} 
         imageUrl={imageUrl} 

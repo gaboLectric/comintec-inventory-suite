@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { SimpleTable } from '../components/SimpleTable';
-import { ImageModal } from '../components/Modal';
+import { ResponsiveTable } from '../components/ResponsiveTable';
+import { EquipmentCard } from '../components/EquipmentCard';
+import { MobileImageModal } from '../components/MobileModal';
 import { EquipmentDetailModal } from '../components/EquipmentDetailModal';
 import { EquipmentQRModal } from '../components/EquipmentQRModal';
 import { EquipmentEditModal } from '../components/EquipmentEditModal';
 import { useToast } from '../components/Toast';
+import { Loading, LoadingSkeleton } from '../components/Loading';
 import { getEquipments, getUserLevel } from '../services/api';
 import pb from '../services/pocketbase';
 import { Eye, QrCode, Edit, Upload, Download } from 'lucide-react';
@@ -29,12 +31,25 @@ export function Equipments() {
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [showSold, setShowSold] = useState(true);
+    // Performance optimization states
+    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
     const { addToast } = useToast();
     const userLevel = getUserLevel();
     const isAdmin = userLevel === 1;
 
-    const loadEquipments = async (pageToLoad = 1, filter = '') => {
+    const loadEquipments = async (pageToLoad = 1, filter = '', isSearch = false) => {
         try {
+            // Set appropriate loading state
+            if (isSearch) {
+                setIsSearching(true);
+            } else if (pageToLoad === 1) {
+                setIsLoading(true);
+            } else {
+                setIsLoadingMore(true);
+            }
+
             let finalFilter = filter;
             if (!showSold) {
                 finalFilter = filter ? `(${filter}) && vendido = false` : 'vendido = false';
@@ -47,6 +62,11 @@ export function Equipments() {
         } catch (error) {
             console.error(error);
             addToast(getErrorMessage(error), 'error');
+        } finally {
+            // Clear all loading states
+            setIsLoading(false);
+            setIsLoadingMore(false);
+            setIsSearching(false);
         }
     };
 
@@ -88,10 +108,12 @@ export function Equipments() {
         const filter = term ? `producto ~ "${term}" || numero_serie ~ "${term}" || codigo ~ "${term}"` : '';
         setCurrentFilter(filter);
         setPage(1);
-        loadEquipments(1, filter);
+        loadEquipments(1, filter, true); // Mark as search operation
     };
 
     const handlePageChange = (newPage) => {
+        // Smooth scroll to top on page change to prevent layout shifts
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         loadEquipments(newPage, currentFilter);
     };
 
@@ -122,6 +144,12 @@ export function Equipments() {
                         onClick={() => {
                             setSelectedImage(fullUrl);
                             setIsImageModalOpen(true);
+                        }}
+                        loading="lazy" // Enable lazy loading for performance
+                        onError={(e) => {
+                            // Fallback for failed image loads
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'block';
                         }}
                     />
                 );
@@ -174,44 +202,61 @@ export function Equipments() {
 
     return (
         <div>
-            <SimpleTable 
-                title="Inventario de Equipos" 
-                columns={columns} 
-                data={equipments} 
-                onSearch={handleSearch}
-                actions={
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        {isAdmin && (
-                            <>
-                                <GlassButton onClick={() => setIsImportModalOpen(true)} variant="secondary" icon={<Upload size={16} />}>
-                                    Importar
-                                </GlassButton>
-                                <GlassButton onClick={handleExport} variant="secondary" disabled={isExporting} icon={<Download size={16} />}>
-                                    Exportar
-                                </GlassButton>
-                            </>
-                        )}
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--font-color-secondary)', cursor: 'pointer' }}>
-                            <input 
-                                type="checkbox" 
-                                checked={showSold} 
-                                onChange={(e) => setShowSold(e.target.checked)} 
-                                style={{ accentColor: 'var(--brand-blue-9)' }}
-                            />
-                            Mostrar Vendidos
-                        </label>
-                    </div>
-                }
-                pagination={{
-                    page,
-                    totalPages,
-                    totalItems,
-                    onPageChange: handlePageChange
-                }}
-                rowStyle={(row) => row.vendido ? { backgroundColor: 'rgba(0, 123, 255, 0.1)' } : {}}
-            />
+            {isLoading ? (
+                <LoadingSkeleton lines={8} />
+            ) : (
+                <ResponsiveTable 
+                    title="Inventario de Equipos" 
+                    columns={columns} 
+                    data={equipments} 
+                    onSearch={handleSearch}
+                    isSearching={isSearching}
+                    actions={
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            {isAdmin && (
+                                <>
+                                    <GlassButton onClick={() => setIsImportModalOpen(true)} variant="secondary" icon={<Upload size={16} />}>
+                                        Importar
+                                    </GlassButton>
+                                    <GlassButton onClick={handleExport} variant="secondary" disabled={isExporting} icon={<Download size={16} />}>
+                                        {isExporting ? 'Exportando...' : 'Exportar'}
+                                    </GlassButton>
+                                </>
+                            )}
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--font-color-secondary)', cursor: 'pointer' }}>
+                                <input 
+                                    type="checkbox" 
+                                    checked={showSold} 
+                                    onChange={(e) => setShowSold(e.target.checked)} 
+                                    style={{ accentColor: 'var(--brand-blue-9)' }}
+                                />
+                                Mostrar Vendidos
+                            </label>
+                        </div>
+                    }
+                    pagination={{
+                        page,
+                        totalPages,
+                        totalItems,
+                        onPageChange: handlePageChange,
+                        isLoadingMore
+                    }}
+                    rowStyle={(row) => row.vendido ? { backgroundColor: 'rgba(0, 123, 255, 0.1)' } : {}}
+                    // Mobile card specific props
+                    mobileCardRenderer={(equipment) => (
+                        <EquipmentCard
+                            equipment={equipment}
+                            userLevel={userLevel}
+                            onView={setViewingEquipment}
+                            onEdit={(eq) => { setEditingEquipment(eq); setIsEditModalOpen(true); }}
+                            onQR={(eq) => { setSelectedQREquipment(eq); setIsQRModalOpen(true); }}
+                            onImageClick={(imageUrl) => { setSelectedImage(imageUrl); setIsImageModalOpen(true); }}
+                        />
+                    )}
+                />
+            )}
 
-            <ImageModal 
+            <MobileImageModal 
                 isOpen={isImageModalOpen} 
                 onClose={() => setIsImageModalOpen(false)} 
                 imageUrl={selectedImage} 

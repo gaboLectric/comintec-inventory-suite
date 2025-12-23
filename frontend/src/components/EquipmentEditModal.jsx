@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from './Modal';
+import { MobileModal } from './MobileModal';
 import { Form, FormRow, FormGroup, Label, Input, ButtonStyled } from './FormComponents';
 import { updateEquipment } from '../services/api';
 import { useToast } from './Toast';
@@ -52,8 +52,32 @@ export function EquipmentEditModal({ isOpen, onClose, equipment, onUpdate }) {
         }
     };
 
+    const actions = (
+        <>
+            <ButtonStyled 
+                type="button" 
+                onClick={onClose} 
+                style={{ background: 'var(--bg-secondary)', color: 'var(--font-color-primary)' }}
+            >
+                Cancelar
+            </ButtonStyled>
+            <ButtonStyled 
+                type="submit" 
+                disabled={loading}
+                onClick={handleSubmit}
+            >
+                {loading ? 'Guardando...' : 'Guardar Cambios'}
+            </ButtonStyled>
+        </>
+    );
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Editar Equipo">
+        <MobileModal 
+            isOpen={isOpen} 
+            onClose={onClose} 
+            title="Editar Equipo"
+            actions={actions}
+        >
             <Form onSubmit={handleSubmit}>
                 <FormRow $columns="1fr 1fr">
                     <FormGroup>
@@ -125,16 +149,7 @@ export function EquipmentEditModal({ isOpen, onClose, equipment, onUpdate }) {
                         style={{ resize: 'vertical', minHeight: '80px' }}
                     />
                 </FormGroup>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                    <ButtonStyled type="button" onClick={onClose} style={{ background: 'var(--bg-secondary)', color: 'var(--font-color-primary)' }}>
-                        Cancelar
-                    </ButtonStyled>
-                    <ButtonStyled type="submit" disabled={loading}>
-                        {loading ? 'Guardando...' : 'Guardar Cambios'}
-                    </ButtonStyled>
-                </div>
             </Form>
-        </Modal>
+        </MobileModal>
     );
 }

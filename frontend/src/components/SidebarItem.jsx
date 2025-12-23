@@ -16,6 +16,13 @@ const StyledLink = styled(Link, {
   transition: all var(--transition-fast);
   position: relative;
   border: 1px solid transparent;
+  
+  /* Mobile: Ensure proper touch targets */
+  @media (max-width: 767px) {
+    min-height: 44px;
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-sm);
+  }
 
   &:hover {
     background: var(--glass-bg-light);
@@ -62,10 +69,18 @@ const StyledLink = styled(Link, {
     width: 20px;
     height: 20px;
     transition: all var(--transition-fast);
+    flex-shrink: 0;
   }
 
   &:hover svg {
     transform: scale(1.05);
+  }
+  
+  span {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;
 

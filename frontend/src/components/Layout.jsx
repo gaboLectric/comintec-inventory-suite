@@ -5,7 +5,7 @@ import { SidebarItem } from './SidebarItem';
 import { useAuth } from '../contexts/AuthContext';
 import pb from '../services/pocketbase';
 import { useTheme } from '../comintec-design-system/emotion/ThemeProvider';
-import { useIsMobile } from '../hooks';
+import { useIsMobile, useViewport, useKeyboardHeight } from '../hooks';
 import {
   LayoutDashboard,
   Package,
@@ -41,6 +41,7 @@ const Sidebar = styled.aside`
   flex-direction: column;
   position: fixed;
   height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile browsers */
   left: 0;
   top: 0;
   z-index: 1000;
@@ -52,10 +53,17 @@ const Sidebar = styled.aside`
     border-right: 1px solid var(--border-color-strong);
   }
 
-  /* Mobile styles */
+  /* Mobile styles with safe area support */
   @media (max-width: 767px) {
     transform: ${props => props.$isOpen ? 'translateX(0)' : 'translateX(-100%)'};
     box-shadow: ${props => props.$isOpen ? 'var(--glass-shadow-elevated)' : 'none'};
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    
+    /* Landscape optimization: reduce width to save horizontal space */
+    @media (orientation: landscape) {
+      width: 200px;
+    }
   }
 
   /* Desktop styles */
@@ -88,6 +96,12 @@ const SidebarHeader = styled.div`
   padding: var(--space-5) var(--space-4);
   border-bottom: 1px solid var(--glass-border);
   background: var(--glass-bg-light);
+  
+  /* Mobile: Adjust padding for better spacing */
+  @media (max-width: 767px) {
+    padding: var(--space-4) var(--space-4);
+    padding-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+  }
 `;
 
 const LogoContainer = styled.div`
@@ -160,6 +174,11 @@ const SidebarFooter = styled.div`
   flex-direction: column;
   gap: var(--space-3);
   background: var(--glass-bg-light);
+  
+  /* Mobile: Add safe area support */
+  @media (max-width: 767px) {
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
 `;
 
 const UserInfo = styled.div`
@@ -281,9 +300,26 @@ const Header = styled.header`
     border-bottom: 1px solid var(--border-color-strong);
   }
   
-  /* Mobile styles */
+  /* Mobile styles with safe area support */
   @media (max-width: 767px) {
     padding: var(--space-3) var(--space-4);
+    padding-top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
+    gap: var(--space-3);
+    min-height: 60px;
+    
+    /* Landscape optimization: reduce height to save vertical space */
+    @media (orientation: landscape) {
+      min-height: 48px;
+      padding: var(--space-2) var(--space-4);
+      padding-top: calc(var(--space-2) + env(safe-area-inset-top, 0px));
+    }
+    
+    /* Short viewport optimization */
+    @media (max-height: 599px) {
+      min-height: 44px;
+      padding: var(--space-2) var(--space-3);
+      padding-top: calc(var(--space-2) + env(safe-area-inset-top, 0px));
+    }
   }
 `;
 
@@ -297,6 +333,18 @@ const MenuButton = styled.button`
   border-radius: var(--radius-sm);
   transition: all var(--transition-fast);
   
+  /* Accessibility: Enhanced focus indicators */
+  &:focus-visible {
+    outline: 3px solid var(--accent-blue);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15);
+  }
+  
+  /* Remove default focus outline for mouse users */
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+  
   &:hover {
     background: var(--glass-bg-medium);
   }
@@ -306,11 +354,35 @@ const MenuButton = styled.button`
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: var(--space-3);
+    
+    /* Enhanced focus for mobile */
+    &:focus-visible {
+      outline: 4px solid var(--accent-blue);
+      outline-offset: 3px;
+    }
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    border: 2px solid currentColor;
+    
+    &:focus-visible {
+      outline: 4px solid currentColor;
+    }
   }
   
   svg {
     width: 20px;
     height: 20px;
+    
+    /* Mobile: Slightly larger icon for better visibility */
+    @media (max-width: 767px) {
+      width: 22px;
+      height: 22px;
+    }
   }
 `;
 
@@ -339,6 +411,13 @@ const PageBreadcrumb = styled.span`
   color: var(--font-color-tertiary);
   font-weight: 500;
   letter-spacing: 0.02em;
+  
+  /* Mobile: More compact breadcrumbs */
+  @media (max-width: 767px) {
+    font-size: 0.6875rem;
+    letter-spacing: 0.01em;
+    opacity: 0.8;
+  }
 `;
 
 const ContentArea = styled.div`
@@ -350,6 +429,33 @@ const ContentArea = styled.div`
   & > * {
     animation: pageEnter 0.2s ease-out;
   }
+  
+  /* Mobile optimizations */
+  @media (max-width: 767px) {
+    /* Portrait: optimize for vertical space */
+    @media (orientation: portrait) {
+      padding: var(--space-4) var(--space-3);
+    }
+    
+    /* Landscape: more compact padding */
+    @media (orientation: landscape) {
+      padding: var(--space-3);
+    }
+    
+    /* Short viewport: minimal padding */
+    @media (max-height: 599px) {
+      padding: var(--space-2) var(--space-3);
+    }
+  }
+  
+  /* Keyboard visibility handling */
+  ${props => props.$keyboardVisible && `
+    padding-bottom: calc(var(--space-6) + ${props.$keyboardHeight}px);
+    
+    @media (max-width: 767px) {
+      padding-bottom: calc(var(--space-3) + ${props.$keyboardHeight}px);
+    }
+  `}
 `;
 
 // Niveles de permisos (igual que sistema legacy):
@@ -393,6 +499,8 @@ export function Layout() {
   const { user, logout, hasPermission } = useAuth();
   const { mode, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
+  const viewport = useViewport();
+  const keyboardState = useKeyboardHeight();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const avatarUrl = user?.avatar ? pb.files.getUrl(user, user.avatar) : null;
@@ -411,6 +519,22 @@ export function Layout() {
       setSidebarOpen(false);
     }
   }, [isMobile]);
+
+  // Handle keyboard visibility for focus management
+  useEffect(() => {
+    if (keyboardState.isVisible) {
+      // Ensure focused element remains visible when keyboard appears
+      const activeElement = document.activeElement;
+      if (activeElement && activeElement.scrollIntoView) {
+        setTimeout(() => {
+          activeElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }, 100);
+      }
+    }
+  }, [keyboardState.isVisible]);
 
   const getRoleName = (level) => {
     switch(level) {
@@ -452,13 +576,49 @@ export function Layout() {
 
   return (
     <LayoutContainer>
+      {/* Skip to main content link for keyboard users */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded"
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          zIndex: 9999,
+          padding: 'var(--space-2) var(--space-3)',
+          background: 'var(--accent-blue)',
+          color: 'white',
+          borderRadius: 'var(--radius-sm)',
+          textDecoration: 'none',
+          fontSize: 'var(--font-size-sm)',
+          fontWeight: '500'
+        }}
+        onFocus={(e) => {
+          e.target.style.left = 'var(--space-4)';
+          e.target.style.top = 'var(--space-4)';
+        }}
+        onBlur={(e) => {
+          e.target.style.left = '-9999px';
+        }}
+      >
+        Saltar al contenido principal
+      </a>
+
       {/* Mobile backdrop */}
-      <SidebarBackdrop $isOpen={isMobile && sidebarOpen} onClick={handleBackdropClick} />
+      <SidebarBackdrop 
+        $isOpen={isMobile && sidebarOpen} 
+        onClick={handleBackdropClick}
+        aria-hidden={!sidebarOpen}
+      />
       
-      <Sidebar $isOpen={sidebarOpen}>
+      <Sidebar 
+        $isOpen={sidebarOpen}
+        role="navigation"
+        aria-label="Navegación principal"
+        aria-hidden={isMobile && !sidebarOpen}
+      >
         <SidebarHeader>
           <LogoContainer>
-            <LogoIcon>
+            <LogoIcon aria-hidden="true">
               <RoundBottomFlask />
             </LogoIcon>
             <LogoText>
@@ -467,7 +627,7 @@ export function Layout() {
             </LogoText>
           </LogoContainer>
         </SidebarHeader>
-        <SidebarNav>
+        <SidebarNav role="list" aria-label="Menú de navegación">
           {menuItems.map((item, index) => {
              if (!hasPermission(item.requiredLevel)) return null;
              
@@ -476,8 +636,20 @@ export function Layout() {
                  if (visibleSubitems.length === 0) return null;
                  
                  return (
-                     <div key={index}>
-                         <div style={{ padding: '12px 16px 4px', fontSize: '11px', fontWeight: 'bold', color: 'var(--font-color-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                     <div key={index} role="group" aria-labelledby={`section-${index}`}>
+                         <div 
+                           id={`section-${index}`}
+                           style={{ 
+                             padding: '12px 16px 4px', 
+                             fontSize: '11px', 
+                             fontWeight: 'bold', 
+                             color: 'var(--font-color-secondary)', 
+                             textTransform: 'uppercase', 
+                             letterSpacing: '0.05em' 
+                           }}
+                           role="heading"
+                           aria-level="3"
+                         >
                              {item.label}
                          </div>
                          {visibleSubitems.map(sub => (
@@ -486,6 +658,7 @@ export function Layout() {
                                  icon={item.icon}
                                  label={sub.label}
                                  to={sub.to}
+                                 role="listitem"
                              />
                          ))}
                      </div>
@@ -498,17 +671,18 @@ export function Layout() {
                 icon={item.icon}
                 label={item.label}
                 to={item.to}
+                role="listitem"
               />
             );
           })}
         </SidebarNav>
         <SidebarFooter>
-          <UserInfo>
-            <UserAvatar>
+          <UserInfo role="region" aria-label="Información del usuario">
+            <UserAvatar aria-hidden="true">
               {avatarUrl ? (
                 <img 
                   src={avatarUrl} 
-                  alt={displayName} 
+                  alt={`Avatar de ${displayName}`}
                   style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
                 />
               ) : (
@@ -521,29 +695,57 @@ export function Layout() {
             </UserDetails>
           </UserInfo>
           
-          <ActionButton onClick={toggleTheme}>
-            {mode === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          <ActionButton 
+            onClick={toggleTheme}
+            aria-label={`Cambiar a ${mode === 'dark' ? 'modo claro' : 'modo oscuro'}`}
+            type="button"
+          >
+            {mode === 'dark' ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
             {mode === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
           </ActionButton>
 
-          <LogoutButton onClick={handleLogout}>
-            <LogOut size={16} />
+          <LogoutButton 
+            onClick={handleLogout}
+            aria-label="Cerrar sesión de la aplicación"
+            type="button"
+          >
+            <LogOut size={16} aria-hidden="true" />
             Cerrar Sesión
           </LogoutButton>
         </SidebarFooter>
       </Sidebar>
 
-      <MainContent>
-        <Header>
-          <MenuButton onClick={handleMenuClick}>
-            {sidebarOpen ? <X /> : <Menu />}
+      <MainContent role="main">
+        <Header role="banner">
+          <MenuButton 
+            onClick={handleMenuClick}
+            aria-label={sidebarOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+            aria-expanded={sidebarOpen}
+            aria-controls="sidebar-nav"
+            type="button"
+          >
+            {sidebarOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
           </MenuButton>
           <PageTitleContainer>
-            <PageBreadcrumb>{pageInfo.breadcrumb}</PageBreadcrumb>
-            <PageTitle>{pageInfo.title}</PageTitle>
+            <PageBreadcrumb aria-label="Ruta de navegación">{pageInfo.breadcrumb}</PageBreadcrumb>
+            <PageTitle id="page-title" role="heading" aria-level="1">{pageInfo.title}</PageTitle>
           </PageTitleContainer>
         </Header>
-        <ContentArea>
+        <ContentArea 
+          id="main-content"
+          $keyboardVisible={keyboardState.isVisible}
+          $keyboardHeight={keyboardState.height}
+          className={`
+            ${viewport.isLandscape && viewport.isMobile ? 'mobile-content-landscape' : ''}
+            ${viewport.isPortrait && viewport.isMobile ? 'mobile-content-portrait' : ''}
+            ${viewport.isShortViewport ? 'short-viewport-content' : ''}
+            ${keyboardState.isVisible ? 'keyboard-visible' : ''}
+            keyboard-focus-container
+          `}
+          role="main"
+          aria-labelledby="page-title"
+          tabIndex={-1}
+        >
           <Outlet />
         </ContentArea>
       </MainContent>

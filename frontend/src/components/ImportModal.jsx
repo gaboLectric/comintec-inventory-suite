@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
-import { Modal } from './Modal';
+import { MobileModal } from './MobileModal';
 import { ButtonStyled, ButtonGroup } from './FormComponents';
 import { Upload, Download, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import { parseExcelFile, validateSupplyData, validateEquipmentData, importSupplies, importEquipments, generateTemplate } from '../services/importService';
@@ -378,7 +378,7 @@ export function ImportModal({ isOpen, onClose, type, onImportComplete }) {
   );
 
   return (
-    <Modal 
+    <MobileModal 
       isOpen={isOpen} 
       onClose={handleClose} 
       title={`Importar ${type === 'supplies' ? 'Insumos' : 'Equipos'}`}
@@ -388,6 +388,6 @@ export function ImportModal({ isOpen, onClose, type, onImportComplete }) {
       {step === 'preview' && renderPreviewStep()}
       {step === 'importing' && renderImportingStep()}
       {step === 'results' && renderResultsStep()}
-    </Modal>
+    </MobileModal>
   );
 }

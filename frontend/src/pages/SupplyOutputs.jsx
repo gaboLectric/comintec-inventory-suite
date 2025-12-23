@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SimpleTable } from '../components/SimpleTable';
 import { SupplyOutputForm } from '../components/FormComponents';
 import { GlassButton } from '../components/GlassButton';
-import { Modal } from '../components/Modal';
+import { MobileModal } from '../components/MobileModal';
 import { useToast } from '../components/Toast';
 import { getSupplyOutputs, createSupplyOutput, getSupplies, getUserLevel } from '../services/api';
 import pb from '../services/pocketbase';
@@ -157,7 +157,7 @@ export function SupplyOutputs() {
                 }
             />
 
-            <Modal 
+            <MobileModal 
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 
                 title="Registrar Salida de Insumo"
@@ -167,7 +167,7 @@ export function SupplyOutputs() {
                     onSubmit={handleSubmit} 
                     onCancel={() => setIsModalOpen(false)} 
                 />
-            </Modal>
+            </MobileModal>
         </div>
     );
 }

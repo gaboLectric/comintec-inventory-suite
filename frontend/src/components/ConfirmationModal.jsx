@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { Modal } from './Modal';
+import { MobileModal } from './MobileModal';
 import { ButtonStyled } from './CommonStyled';
 import { AlertTriangle } from 'lucide-react';
 
@@ -64,24 +64,26 @@ const CancelButton = styled(ButtonStyled)`
 `;
 
 export function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, details }) {
+    const actions = (
+        <ButtonGroup>
+            <CancelButton type="button" onClick={onClose}>
+                Cancelar
+            </CancelButton>
+            <ConfirmButton type="button" onClick={onConfirm}>
+                Confirmar
+            </ConfirmButton>
+        </ButtonGroup>
+    );
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={title || "Confirmación"}>
+        <MobileModal isOpen={isOpen} onClose={onClose} title={title || "Confirmación"} actions={actions}>
             <ConfirmationContent>
                 <WarningIcon>
                     <AlertTriangle size={32} />
                 </WarningIcon>
                 <Message>{message}</Message>
                 {details && <DetailText>{details}</DetailText>}
-                
-                <ButtonGroup>
-                    <CancelButton type="button" onClick={onClose}>
-                        Cancelar
-                    </CancelButton>
-                    <ConfirmButton type="button" onClick={onConfirm}>
-                        Confirmar
-                    </ConfirmButton>
-                </ButtonGroup>
             </ConfirmationContent>
-        </Modal>
+        </MobileModal>
     );
 }

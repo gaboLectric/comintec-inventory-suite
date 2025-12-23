@@ -269,12 +269,14 @@ export const SimpleTable = React.memo(function SimpleTable({ title, columns, dat
                         <PageButton 
                             onClick={() => pagination.onPageChange(pagination.page - 1)}
                             disabled={pagination.page <= 1}
+                            title="Página anterior"
                         >
                             <ChevronLeft size={16} />
                         </PageButton>
                         <PageButton 
                             onClick={() => pagination.onPageChange(pagination.page + 1)}
                             disabled={pagination.page >= pagination.totalPages}
+                            title="Página siguiente"
                         >
                             <ChevronRight size={16} />
                         </PageButton>

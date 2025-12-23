@@ -7,6 +7,17 @@
 
 html {
     font-size: 13px;
+    
+    /* Mobile-first font size optimization */
+    @media (max-width: 767px) {
+        font-size: 14px; /* Slightly larger base for better mobile readability */
+    }
+    
+    /* Prevent zoom on form inputs on iOS */
+    @media (max-width: 767px) {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+    }
 }
 
 body {
@@ -15,6 +26,22 @@ body {
     color: #eeeeec;
     margin: 0;
     padding: 0;
+    
+    /* Enhanced mobile typography */
+    @media (max-width: 767px) {
+        font-size: max(var(--font-size-md), 16px); /* Prevent zoom on iOS */
+        line-height: var(--line-height-lg); /* Better readability */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* Smooth scrolling for better UX */
+    scroll-behavior: smooth;
+    
+    /* Respect user's motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+        scroll-behavior: auto;
+    }
 }
 
 @theme {
@@ -22,23 +49,651 @@ body {
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-/* Transición simple de página */
-@keyframes pageEnter {
-  from { 
-    opacity: 0; 
+/* Enhanced Mobile Spacing and UX Optimizations */
+
+/* Mobile-optimized spacing system */
+@media (max-width: 767px) {
+  /* Enhanced card spacing for better touch experience */
+  .mobile-card,
+  .glass-card {
+    margin-bottom: var(--space-4); /* Consistent spacing between cards */
+    padding: var(--space-4); /* Optimal touch-friendly padding */
   }
-  to { 
-    opacity: 1; 
+  
+  /* Optimized form spacing */
+  .mobile-form .form-field,
+  .form-field {
+    margin-bottom: var(--space-4); /* Better visual separation */
+    padding: var(--space-3); /* Comfortable input padding */
+  }
+  
+  /* Enhanced button spacing */
+  .touch-button,
+  .glass-button {
+    margin: var(--space-2); /* Consistent button margins */
+    padding: var(--space-3) var(--space-4); /* Optimal touch targets */
+    min-height: 44px; /* iOS/Android guidelines */
+    min-width: 44px;
+  }
+  
+  /* Improved modal spacing */
+  .mobile-modal .modal-content {
+    padding: var(--space-5); /* Generous content padding */
+    gap: var(--space-4); /* Consistent element spacing */
+  }
+  
+  /* Enhanced table/card list spacing */
+  .responsive-table .card-list {
+    gap: var(--space-3); /* Optimal card separation */
+    padding: var(--space-4); /* Container padding */
+  }
+  
+  /* Optimized navigation spacing */
+  .sidebar-item {
+    padding: var(--space-4) var(--space-5); /* Touch-friendly nav items */
+    margin-bottom: var(--space-1); /* Subtle separation */
+  }
+  
+  /* Enhanced header spacing */
+  .mobile-header {
+    padding: var(--space-4) var(--space-5); /* Balanced header padding */
+    min-height: 60px; /* Comfortable header height */
   }
 }
 
+/* Tablet-specific spacing optimizations */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .mobile-card,
+  .glass-card {
+    padding: var(--space-5); /* Slightly more padding on tablet */
+    margin-bottom: var(--space-4);
+  }
+  
+  .touch-button,
+  .glass-button {
+    min-height: 48px; /* Larger touch targets on tablet */
+    min-width: 48px;
+    padding: var(--space-3) var(--space-5);
+  }
+}
+
+/* Enhanced Smooth Transitions */
+
+/* Global transition improvements */
+* {
+  transition: 
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+/* Smooth page transitions */
 .page-transition {
-  animation: pageEnter 0.2s ease-out;
+  animation: pageEnter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Reducir animaciones si el usuario lo prefiere */
-@media (prefers-reduced-motion: reduce) {
-  .page-transition {
-    animation: none;
+/* Enhanced component transitions */
+.mobile-card,
+.glass-card {
+  transition: 
+    transform var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1),
+    background-color var(--transition-fast);
+}
+
+.mobile-card:hover,
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glass-shadow-elevated);
+}
+
+/* Smooth button interactions */
+.touch-button,
+.glass-button {
+  transition: 
+    all var(--transition-fast) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.touch-button:active,
+.glass-button:active {
+  transform: scale(0.98);
+  transition-duration: 0.1s;
+}
+
+/* Smooth modal animations */
+.mobile-modal {
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced focus transitions */
+*:focus-visible {
+  transition: 
+    outline-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+/* Mobile Typography Enhancements */
+
+/* Optimized font sizes for mobile readability */
+@media (max-width: 767px) {
+  /* Enhanced heading hierarchy */
+  h1, .text-xxl {
+    font-size: var(--font-size-xxl); /* 24px - prominent headings */
+    line-height: var(--line-height-tight);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-4);
   }
+  
+  h2, .text-xl {
+    font-size: var(--font-size-xl); /* 20px - section headings */
+    line-height: var(--line-height-tight);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-3);
+  }
+  
+  h3, .text-lg {
+    font-size: var(--font-size-lg); /* 18px - subsection headings */
+    line-height: var(--line-height-md);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-3);
+  }
+  
+  /* Enhanced body text */
+  p, .text-md, body {
+    font-size: max(var(--font-size-md), 16px); /* 16px minimum - prevent zoom */
+    line-height: var(--line-height-lg); /* 1.6 - better readability */
+    margin-bottom: var(--space-3);
+  }
+  
+  /* Optimized small text */
+  .text-sm, small {
+    font-size: max(var(--font-size-sm), 14px); /* 14px minimum */
+    line-height: var(--line-height-md);
+  }
+  
+  /* Enhanced button text */
+  .touch-button,
+  .glass-button {
+    font-size: max(var(--font-size-md), 16px); /* Prevent zoom on iOS */
+    font-weight: var(--font-weight-medium);
+    line-height: 1.2; /* Compact for buttons */
+  }
+  
+  /* Optimized input text */
+  input, 
+  textarea, 
+  select {
+    font-size: max(var(--font-size-md), 16px) !important; /* Prevent zoom */
+    line-height: var(--line-height-md);
+  }
+  
+  /* Enhanced card typography */
+  .mobile-card .card-title {
+    font-size: var(--font-size-lg); /* 18px - prominent card titles */
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+  }
+  
+  .mobile-card .card-subtitle {
+    font-size: var(--font-size-md); /* 16px - readable subtitles */
+    line-height: var(--line-height-md);
+  }
+  
+  .mobile-card .field-label {
+    font-size: var(--font-size-sm); /* 14px - compact labels */
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .mobile-card .field-value {
+    font-size: var(--font-size-md); /* 16px - readable values */
+    line-height: var(--line-height-md);
+  }
+}
+
+/* Enhanced Glassmorphism Consistency */
+
+/* Unified glass effect variables for consistency */
+:root {
+  /* Optimized glass effects for mobile performance */
+  --glass-blur-mobile: 8px; /* Reduced blur for better performance */
+  --glass-blur-tablet: 12px;
+  --glass-blur-desktop: 16px;
+  
+  /* Consistent glass backgrounds */
+  --glass-bg-primary: rgba(40, 40, 40, 0.95); /* Strong opacity for readability */
+  --glass-bg-secondary: rgba(35, 35, 35, 0.9); /* Medium opacity */
+  --glass-bg-tertiary: rgba(30, 30, 30, 0.85); /* Light opacity */
+  
+  /* Enhanced glass borders */
+  --glass-border-primary: rgba(255, 255, 255, 0.15); /* More visible */
+  --glass-border-secondary: rgba(255, 255, 255, 0.1); /* Subtle */
+  --glass-border-hover: rgba(255, 255, 255, 0.2); /* Interactive state */
+}
+
+/* Consistent glassmorphism application */
+.glass-card,
+.mobile-card,
+.glass-button,
+.touch-button,
+.mobile-modal {
+  backdrop-filter: blur(var(--glass-blur-mobile));
+  -webkit-backdrop-filter: blur(var(--glass-blur-mobile));
+  border: 1px solid var(--glass-border-secondary);
+  box-shadow: var(--glass-shadow);
+  
+  /* Enhanced hover states */
+  &:hover {
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-elevated);
+  }
+  
+  /* Tablet and desktop enhancements */
+  @media (min-width: 768px) {
+    backdrop-filter: blur(var(--glass-blur-tablet));
+    -webkit-backdrop-filter: blur(var(--glass-blur-tablet));
+  }
+  
+  @media (min-width: 1024px) {
+    backdrop-filter: blur(var(--glass-blur-desktop));
+    -webkit-backdrop-filter: blur(var(--glass-blur-desktop));
+  }
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(8px)) {
+  .glass-card,
+  .mobile-card,
+  .glass-button,
+  .touch-button,
+  .mobile-modal {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-color-strong) !important;
+  }
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 767px) {
+  /* Reduce blur on low-end devices */
+  @media (max-resolution: 150dpi) {
+    .glass-card,
+    .mobile-card,
+    .glass-button,
+    .touch-button,
+    .mobile-modal {
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+  }
+  
+  /* Disable complex effects on very low-end devices */
+  @media (max-width: 320px) {
+    .glass-card,
+    .mobile-card,
+    .glass-button,
+    .touch-button,
+    .mobile-modal {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: var(--glass-bg-primary) !important;
+    }
+  }
+}
+
+/* Orientation and Viewport Handling */
+
+/* Landscape orientation optimizations */
+@media (orientation: landscape) and (max-width: 1024px) {
+  /* Reduce header height in landscape to maximize content space */
+  .mobile-header-landscape {
+    min-height: 48px;
+    padding-top: calc(var(--space-2) + env(safe-area-inset-top, 0px));
+    padding-bottom: var(--space-2);
+  }
+  
+  /* Compact sidebar in landscape */
+  .mobile-sidebar-landscape {
+    width: 200px;
+  }
+  
+  /* Reduce modal padding in landscape */
+  .mobile-modal-landscape .modal-content {
+    padding: var(--space-3);
+  }
+  
+  /* Stack form elements more compactly in landscape */
+  .mobile-form-landscape .form-row {
+    gap: var(--space-2);
+  }
+}
+
+/* Portrait orientation optimizations */
+@media (orientation: portrait) and (max-width: 767px) {
+  /* Maximize vertical space usage in portrait */
+  .mobile-content-portrait {
+    padding: var(--space-4) var(--space-3);
+  }
+  
+  /* Ensure cards don't take too much vertical space */
+  .mobile-card-portrait {
+    padding: var(--space-3);
+  }
+  
+  /* Optimize button groups for portrait */
+  .mobile-button-group-portrait {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
+/* Short viewport handling (height < 600px) */
+@media (max-height: 599px) {
+  /* Reduce padding and margins for short viewports */
+  .short-viewport-content {
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  /* Make modals more compact */
+  .short-viewport-modal {
+    padding: var(--space-2);
+  }
+  
+  /* Reduce header size */
+  .short-viewport-header {
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  /* Compact form elements */
+  .short-viewport-form .form-field {
+    margin-bottom: var(--space-2);
+  }
+}
+
+/* Keyboard appearance handling */
+.keyboard-visible {
+  /* Ensure content remains accessible when keyboard is visible */
+  padding-bottom: env(keyboard-inset-height, 0px);
+}
+
+/* Focus management for keyboard navigation */
+.keyboard-focus-container {
+  /* Ensure focused elements remain visible */
+  scroll-margin-top: 60px;
+  scroll-margin-bottom: 60px;
+}
+
+/* Viewport height utilities using dynamic viewport units */
+.full-viewport-height {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile browsers */
+}
+
+.min-viewport-height {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Safe area handling for different orientations */
+.safe-area-insets {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Landscape-specific safe area handling */
+@media (orientation: landscape) {
+  .safe-area-landscape {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+}
+
+/* Mobile Accessibility Enhancements */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip to main content link */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 9999;
+  padding: var(--space-2) var(--space-3);
+  background: var(--accent-blue);
+  color: white;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.skip-link:focus {
+  left: var(--space-4) !important;
+  top: var(--space-4) !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --glass-bg-light: var(--bg-primary);
+    --glass-bg-medium: var(--bg-secondary);
+    --glass-bg-strong: var(--bg-tertiary);
+    --glass-border: var(--border-color-strong);
+    --glass-border-hover: currentColor;
+  }
+  
+  button, 
+  input, 
+  select, 
+  textarea {
+    border: 2px solid currentColor !important;
+  }
+  
+  .glass-card,
+  .mobile-card,
+  .touch-button {
+    border: 2px solid currentColor !important;
+    background: var(--bg-primary) !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .mobile-modal,
+  .responsive-table,
+  .touch-button {
+    transform: none !important;
+  }
+}
+
+/* Zoom support up to 200% */
+@media (min-resolution: 192dpi) {
+  /* Ensure touch targets remain accessible at high zoom */
+  .touch-button,
+  .mobile-card button,
+  .responsive-table button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  /* Ensure text remains readable */
+  body {
+    font-size: max(var(--font-size-base), 16px);
+  }
+  
+  /* Prevent horizontal scroll at high zoom */
+  .mobile-content,
+  .responsive-table,
+  .mobile-modal {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}
+
+/* Focus management for keyboard navigation */
+.keyboard-focus-container {
+  outline: none;
+}
+
+.keyboard-focus-container:focus-within {
+  /* Ensure focused elements are visible */
+  scroll-behavior: smooth;
+}
+
+/* Enhanced focus indicators for mobile */
+@media (max-width: 767px) {
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  a:focus-visible {
+    outline: 4px solid var(--accent-blue);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.15);
+  }
+  
+  /* Ensure focus indicators work with glassmorphism */
+  .glass-button:focus-visible,
+  .touch-button:focus-visible {
+    outline: 4px solid var(--accent-blue);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.15), var(--glass-shadow-elevated);
+  }
+}
+
+/* Voice control support - ensure labels are descriptive */
+[aria-label],
+[aria-labelledby],
+[aria-describedby] {
+  /* Ensure voice control can identify elements */
+  position: relative;
+}
+
+/* Keyboard navigation improvements */
+.mobile-modal[role="dialog"]:focus,
+.responsive-table:focus,
+.mobile-card:focus {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* Ensure interactive elements are keyboard accessible */
+.mobile-card[tabindex="0"]:focus,
+.touch-button:focus,
+.responsive-table button:focus {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15);
+}
+
+/* Mobile zoom usability - prevent zoom on form inputs */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: max(16px, var(--font-size-base)) !important;
+  }
+}
+
+/* Ensure content remains usable at 200% zoom */
+@media (min-width: 320px) and (max-width: 640px) {
+  /* This targets content at ~200% zoom on mobile */
+  .responsive-table {
+    font-size: var(--font-size-sm);
+  }
+  
+  .mobile-card {
+    padding: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+  
+  .touch-button {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+  
+  .mobile-modal {
+    padding: var(--space-3);
+  }
+  
+  /* Ensure navigation remains accessible */
+  .sidebar-item {
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  /* Compact header for zoomed content */
+  .mobile-header {
+    min-height: 48px;
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+/* Accessibility announcements for screen readers */
+.accessibility-announcement {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Focus trap styles */
+.focus-trap-active {
+  /* Ensure focus remains within modal/dialog */
+  isolation: isolate;
+}
+
+/* Voice control enhancements */
+.voice-control-label {
+  /* Ensure voice commands can target elements */
+  speak: normal;
+}
+
+/* Keyboard navigation enhancements */
+.keyboard-navigation-active *:focus {
+  /* Enhanced focus for keyboard users */
+  outline: 3px solid var(--accent-blue) !important;
+  outline-offset: 2px !important;
 }

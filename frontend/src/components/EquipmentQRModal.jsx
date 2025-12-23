@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal } from './Modal';
+import { MobileModal } from './MobileModal';
 import { QRCodeGenerator } from './QRCodeGenerator';
 import styled from '@emotion/styled';
 
@@ -38,7 +38,7 @@ export const EquipmentQRModal = ({ isOpen, onClose, equipment }) => {
   if (!equipment) return null;
 
   return (
-    <Modal
+    <MobileModal
       isOpen={isOpen}
       onClose={onClose}
       title="Código QR de Equipo"
@@ -77,6 +77,6 @@ export const EquipmentQRModal = ({ isOpen, onClose, equipment }) => {
           </DetailRow>
         </DetailsContainer>
       </div>
-    </Modal>
+    </MobileModal>
   );
 };

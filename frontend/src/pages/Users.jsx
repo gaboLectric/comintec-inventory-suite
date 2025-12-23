@@ -1,9 +1,10 @@
 import styled from '@emotion/styled';
-import { SimpleTable } from '../components/SimpleTable';
+import { ResponsiveTable } from '../components/ResponsiveTable';
+import { UserCard } from '../components/UserCard';
 import { useEffect, useState } from 'react';
 import { fetchUsers, createUser, updateUser, deleteUser, getUserLevel } from '../services/api';
 import { Edit, Trash2, Plus } from 'lucide-react';
-import { Modal } from '../components/Modal';
+import { MobileModal } from '../components/MobileModal';
 import { Form, FormRow, FormGroup, Label, Input, Select, ButtonGroup } from '../components/FormComponents';
 import { GlassButton } from '../components/GlassButton';
 import { useNavigate } from 'react-router-dom';
@@ -176,7 +177,7 @@ export function Users() {
       {loading ? (
         <p>Cargando usuarios...</p>
       ) : (
-        <SimpleTable 
+        <ResponsiveTable 
             title="" 
             columns={columns} 
             data={users} 
@@ -185,15 +186,33 @@ export function Users() {
                   Agregar Usuario
                 </GlassButton>
             }
+            // Mobile card specific props
+            mobileCardRenderer={(user) => (
+                <UserCard
+                    user={user}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                />
+            )}
         />
       )}
 
-      <Modal
+      <MobileModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingUser ? 'Editar Usuario' : 'Agregar Usuario'}
+        actions={
+          <ButtonGroup>
+            <GlassButton type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+              Cancelar
+            </GlassButton>
+            <GlassButton type="submit" variant="primary" form="user-form">
+              {editingUser ? 'Guardar Cambios' : 'Crear Usuario'}
+            </GlassButton>
+          </ButtonGroup>
+        }
       >
-        <Form onSubmit={handleSubmit}>
+        <Form id="user-form" onSubmit={handleSubmit}>
           <FormGroup>
             <Label>Nombre Completo</Label>
             <Input
@@ -237,17 +256,8 @@ export function Users() {
               </Select>
             </FormGroup>
           </FormRow>
-
-          <ButtonGroup>
-            <GlassButton type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
-              Cancelar
-            </GlassButton>
-            <GlassButton type="submit" variant="primary">
-              {editingUser ? 'Guardar Cambios' : 'Crear Usuario'}
-            </GlassButton>
-          </ButtonGroup>
         </Form>
-      </Modal>
+      </MobileModal>
     </PageContainer>
   );
 }
