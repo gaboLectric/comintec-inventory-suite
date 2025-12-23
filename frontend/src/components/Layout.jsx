@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { SidebarItem } from './SidebarItem';
+import { LogoutModal } from './LogoutModal';
 import { useAuth } from '../contexts/AuthContext';
 import pb from '../services/pocketbase';
 import { useTheme } from '../comintec-design-system/emotion/ThemeProvider';
@@ -519,6 +520,7 @@ export function Layout() {
   const viewport = useViewport();
   const keyboardState = useKeyboardHeight();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [pageTransition, setPageTransition] = useState('pageEnter');
   const [previousPath, setPreviousPath] = useState(location.pathname);
 
@@ -593,10 +595,13 @@ export function Layout() {
     }
   };
 
-  const handleLogout = async () => {
-    if (confirm('¿Estás seguro de cerrar sesión?')) {
-      await logout();
-    }
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = async () => {
+    setShowLogoutModal(false);
+    await logout();
   };
 
   const handleMenuClick = () => {
@@ -798,6 +803,12 @@ export function Layout() {
           <Outlet />
         </ContentArea>
       </MainContent>
+
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={confirmLogout}
+      />
     </LayoutContainer>
   );
 }
