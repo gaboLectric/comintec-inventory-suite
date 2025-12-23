@@ -441,6 +441,17 @@ const ContentArea = styled.div`
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   
+  /* Enhanced page transitions */
+  & > * {
+    /* Animation is handled by page-transition classes in app.css */
+  }
+  
+  /* Staggered animation for child elements */
+  & > *:nth-child(1) { animation-delay: 0ms; }
+  & > *:nth-child(2) { animation-delay: 50ms; }
+  & > *:nth-child(3) { animation-delay: 100ms; }
+  & > *:nth-child(4) { animation-delay: 150ms; }
+  
   /* Mobile optimizations */
   @media (max-width: 767px) {
     height: 100%;
@@ -462,6 +473,11 @@ const ContentArea = styled.div`
       padding: var(--space-2) var(--space-3);
       padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
     }
+
+    /* Faster animations on mobile for better performance */
+    & > * {
+      animation-duration: 0.2s;
+    }
   }
   
   ${props => props.$keyboardVisible && `
@@ -471,6 +487,9 @@ const ContentArea = styled.div`
       padding-bottom: calc(var(--space-3) + ${props.$keyboardHeight}px + env(safe-area-inset-bottom, 0px));
     }
   `}
+  
+  /* Smooth transitions for layout changes */
+  transition: padding-bottom var(--transition-normal) ease-out;
 `;
 
 // Niveles de permisos (igual que sistema legacy):
@@ -518,7 +537,7 @@ export function Layout() {
   const keyboardState = useKeyboardHeight();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [pageTransition, setPageTransition] = useState('pageEnter');
+  const [pageTransition, setPageTransition] = useState('default');
   const [previousPath, setPreviousPath] = useState(location.pathname);
 
   const avatarUrl = user?.avatar ? pb.files.getUrl(user, user.avatar) : null;
@@ -530,14 +549,14 @@ export function Layout() {
       // Determine transition type based on navigation pattern
       const getTransitionType = (from, to) => {
         // Dashboard to any page
-        if (from === '/' && to !== '/') return 'slideInFromRight';
+        if (from === '/' && to !== '/') return 'slide-right';
         // Any page back to dashboard
-        if (from !== '/' && to === '/') return 'slideInFromLeft';
+        if (from !== '/' && to === '/') return 'slide-left';
         // Between similar sections (almacen, salidas)
-        if (from.includes('/almacen') && to.includes('/almacen')) return 'fadeInUp';
-        if (from.includes('/salidas') && to.includes('/salidas')) return 'fadeInUp';
+        if (from.includes('/almacen') && to.includes('/almacen')) return 'fade-up';
+        if (from.includes('/salidas') && to.includes('/salidas')) return 'fade-up';
         // Default smooth transition
-        return 'pageEnter';
+        return 'default';
       };
 
       const transitionType = getTransitionType(previousPath, location.pathname);
@@ -546,7 +565,7 @@ export function Layout() {
 
       // Reset transition after animation completes
       const timer = setTimeout(() => {
-        setPageTransition('pageEnter');
+        setPageTransition('default');
       }, 300);
 
       return () => clearTimeout(timer);
@@ -786,6 +805,7 @@ export function Layout() {
           $keyboardVisible={keyboardState.isVisible}
           $keyboardHeight={keyboardState.height}
           className={`
+            page-transition
             page-transition-${pageTransition}
             ${viewport.isLandscape && viewport.isMobile ? 'mobile-content-landscape' : ''}
             ${viewport.isPortrait && viewport.isMobile ? 'mobile-content-portrait' : ''}
