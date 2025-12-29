@@ -12,18 +12,20 @@ export const Form = styled.form`
 `;
 
 const FormRowStyled = styled.div`
-  display: grid;
-  grid-template-columns: ${props => props.$columns || '1fr'};
-  gap: var(--space-4);
+    display: grid;
+    grid-template-columns: ${props => props.$columns || '1fr'};
+    gap: var(--space-4);
+
+    /* Mobile: force single column to avoid overflow and horizontal clipping */
+    @media (max-width: 767px) {
+        grid-template-columns: 1fr !important;
+        gap: var(--space-3);
+    }
 `;
 
 export const FormRow = styled(FormRowStyled, {
-  shouldForwardProp: (prop) => !['$columns'].includes(prop)
-})`
-  display: grid;
-  grid-template-columns: ${props => props.$columns || '1fr'};
-  gap: var(--space-4);
-`;
+    shouldForwardProp: (prop) => !['$columns'].includes(prop)
+})``;
 
 export const FormGroup = styled.div`
   display: flex;
@@ -32,21 +34,25 @@ export const FormGroup = styled.div`
 `;
 
 export const Label = styled.label`
-  font-size: var(--font-size-sm);
+    font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--font-color-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+
+    @media (max-width: 767px) {
+        font-size: calc(var(--font-size-sm) - 1px);
+    }
 `;
 
 export const Input = styled.input`
-  padding: var(--space-3);
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color-strong);
-  border-radius: var(--radius-sm);
-  color: var(--font-color-primary);
-  font-size: var(--font-size-md);
-  font-family: var(--font-family);
+    padding: var(--space-3);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-sm);
+    color: var(--font-color-primary);
+    font-size: var(--font-size-md);
+    font-family: var(--font-family);
 
   &:focus {
     outline: none;
@@ -56,6 +62,12 @@ export const Input = styled.input`
   &::placeholder {
     color: var(--font-color-tertiary);
   }
+  
+    /* Mobile: slightly smaller inputs and padding to avoid overflow */
+    @media (max-width: 767px) {
+        padding: var(--space-2);
+        font-size: calc(var(--font-size-md) - 1px);
+    }
 `;
 
 export const Select = styled.select`

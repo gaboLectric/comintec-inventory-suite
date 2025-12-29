@@ -57,6 +57,7 @@ export function Equipments() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const [currentFilter, setCurrentFilter] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const [viewingEquipment, setViewingEquipment] = useState(null);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -74,6 +75,18 @@ export function Equipments() {
     const { addToast } = useToast();
     const userLevel = getUserLevel();
     const isAdmin = userLevel === 1;
+
+    // Extract search term from filter for input synchronization
+    const extractSearchTerm = (filter) => {
+        if (!filter) return '';
+        const match = filter.match(/producto ~ "([^"]*)" \|\| numero_serie ~ "[^"]*" \|\| codigo ~ "[^"]*"/);
+        return match ? match[1] : '';
+    };
+
+    // Sync searchTerm with currentFilter
+    useEffect(() => {
+        setSearchTerm(extractSearchTerm(currentFilter));
+    }, [currentFilter]);
 
     const loadEquipments = async (pageToLoad = 1, filter = '', isSearch = false) => {
         try {
@@ -141,10 +154,12 @@ export function Equipments() {
     }, []);
 
     const handleSearch = (term) => {
-        const filter = term ? `producto ~ "${term}" || numero_serie ~ "${term}" || codigo ~ "${term}"` : '';
-        setCurrentFilter(filter);
-        setPage(1);
-        loadEquipments(1, filter, true); // Mark as search operation
+        if (term !== searchTerm) {
+            const filter = term ? `producto ~ "${term}" || numero_serie ~ "${term}" || codigo ~ "${term}"` : '';
+            setCurrentFilter(filter);
+            setPage(1);
+            loadEquipments(1, filter, true); // Mark as search operation
+        }
     };
 
     const handlePageChange = (newPage) => {
@@ -247,6 +262,7 @@ export function Equipments() {
                     data={equipments} 
                     onSearch={handleSearch}
                     isSearching={isSearching}
+                    initialSearchTerm={searchTerm}
                     actions={
                         <TableActions>
                             {isAdmin && (

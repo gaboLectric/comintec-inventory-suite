@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
 import { X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useViewport } from '../hooks/useViewport';
 
 const fadeIn = keyframes`
@@ -47,7 +48,7 @@ const Overlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 99999; /* Increased to maximum to ensure it's above everything */
   animation: ${fadeIn} var(--transition-normal);
   
   /* Mobile: Full screen overlay */
@@ -143,10 +144,14 @@ const ModalHeader = styled.div`
   backdrop-filter: blur(var(--glass-blur-light));
   -webkit-backdrop-filter: blur(var(--glass-blur-light));
   flex-shrink: 0;
+  position: relative;
+  z-index: 100; /* Ensure header is above modal content */
   
   /* Mobile: Sticky header with safe area */
   @media (max-width: 767px) {
-    z-index: 10;
+    position: sticky;
+    top: 0;
+    z-index: 100;
     padding: var(--space-4);
     padding-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
   }
@@ -417,6 +422,13 @@ export function MobileModal({
       if (isMobile) {
         document.body.style.position = 'fixed';
         document.body.style.width = '100%';
+        
+        // Close sidebar if it's open on mobile when modal opens
+        const sidebarBackdrop = document.querySelector('div[style*="opacity: 1"]');
+        if (sidebarBackdrop) {
+          // Dispatch a custom event to close the sidebar
+          window.dispatchEvent(new CustomEvent('closeSidebar'));
+        }
       }
       
       // Announce modal opening to screen readers
@@ -472,8 +484,8 @@ export function MobileModal({
   // Force full screen on mobile or when explicitly requested
   const shouldUseFullScreen = isMobile || fullScreen;
 
-  return (
-    <Overlay onClick={handleOverlayClick}>
+  const modalContent = (
+    <Overlay onClick={handleOverlayClick} style={{ zIndex: 99999, position: 'fixed' }}>
       <ModalContainer 
         ref={modalRef}
         $size={size} 
@@ -484,6 +496,7 @@ export function MobileModal({
         aria-labelledby={ariaLabelledBy || 'modal-title'}
         aria-describedby={ariaDescribedBy}
         tabIndex={-1}
+        style={{ zIndex: 99999 }}
       >
         <ModalHeader>
           <ModalTitle id="modal-title">{title}</ModalTitle>
@@ -506,6 +519,9 @@ export function MobileModal({
       </ModalContainer>
     </Overlay>
   );
+
+  // Render modal using portal to ensure it's at the top level of DOM
+  return createPortal(modalContent, document.body);
 }
 
 export function MobileImageModal({ 
@@ -579,8 +595,8 @@ export function MobileImageModal({
     onClose();
   };
 
-  return (
-    <Overlay onClick={handleOverlayClick}>
+  const modalContent = (
+    <Overlay onClick={handleOverlayClick} style={{ zIndex: 99999, position: 'fixed' }}>
       <div 
         ref={modalRef}
         role="dialog"
@@ -598,7 +614,8 @@ export function MobileImageModal({
           animation: `${isMobile ? slideUp : scaleIn} var(--transition-normal)`,
           width: isMobile ? '100%' : 'auto',
           height: isMobile ? '100%' : 'auto',
-          outline: 'none'
+          outline: 'none',
+          zIndex: 99999
         }}
       >
         <img 
@@ -636,4 +653,7 @@ export function MobileImageModal({
       </div>
     </Overlay>
   );
+
+  // Render modal using portal to ensure it's at the top level of DOM
+  return createPortal(modalContent, document.body);
 }

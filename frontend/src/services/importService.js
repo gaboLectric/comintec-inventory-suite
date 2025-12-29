@@ -21,14 +21,16 @@ export const parseExcelFile = (file) => {
         const worksheet = workbook.Sheets[firstSheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
         
+        console.log(`Excel parsed: ${jsonData.length} rows found`);
+        console.log('Headers detected:', Object.keys(jsonData[0] || {}));
+        
         // Normalize keys to lowercase and replace spaces with underscores to support various header formats
         const normalizedData = jsonData.map(row => {
           const newRow = {};
           Object.keys(row).forEach(key => {
-            // Replace spaces with underscores, remove special chars except alphanumeric and underscore/hyphen/slash
+            // More conservative normalization - keep more characters
             const normalizedKey = key.toLowerCase().trim()
-              .replace(/\s+/g, '_')
-              .replace(/[^\w\-\/]/g, ''); // Remove dots, parenthesis, etc to make matching easier
+              .replace(/\s+/g, '_'); // Only replace spaces with underscores
             newRow[normalizedKey] = row[key];
           });
           return newRow;
@@ -36,6 +38,7 @@ export const parseExcelFile = (file) => {
 
         resolve(normalizedData);
       } catch (error) {
+        console.error('Excel parsing error:', error);
         reject(error);
       }
     };
@@ -61,9 +64,9 @@ const ALIASES = {
     vendido: ['vendido', 'sold', 'status', 'venta', 'estatus', 'is_sold']
   },
   supplies: {
-    nombre: ['nombre', 'producto', 'descripcion', 'insumo', 'item'],
-    piezas: ['piezas', 'cantidad', 'stock', 'existencia', 'qty', 'cant'],
-    stock_deseado: ['stock_deseado', 'stock_minimo', 'minimo', 'ideal', 'target']
+    nombre: ['nombre', 'producto', 'descripcion', 'insumo', 'item', 'articulo', 'material'],
+    piezas: ['piezas', 'cantidad', 'stock', 'existencia', 'qty', 'cant', 'unidades', 'inventario'],
+    stock_deseado: ['stock_deseado', 'stock_minimo', 'minimo', 'ideal', 'target', 'objetivo', 'meta']
   }
 };
 
@@ -75,6 +78,35 @@ const findValue = (row, field, type) => {
   const aliases = ALIASES[type]?.[field] || [];
   for (const alias of aliases) {
     if (row[alias] !== undefined) return row[alias];
+  }
+  
+  // 3. Try case-insensitive search for common patterns
+  const keys = Object.keys(row);
+  
+  if (field === 'nombre' && type === 'supplies') {
+    // Look for any key that might contain product info
+    const productKey = keys.find(key => 
+      key.includes('producto') || 
+      key.includes('nombre') || 
+      key.includes('item') ||
+      key.includes('articulo') ||
+      key.includes('material')
+    );
+    if (productKey && row[productKey] !== undefined) return row[productKey];
+  }
+  
+  if (field === 'piezas' && type === 'supplies') {
+    // Look for any key that might contain quantity info
+    const quantityKey = keys.find(key => 
+      key.includes('pieza') || 
+      key.includes('cantidad') || 
+      key.includes('stock') ||
+      key.includes('existencia') ||
+      key.includes('qty') ||
+      key.includes('cant') ||
+      key.includes('unidad')
+    );
+    if (quantityKey && row[quantityKey] !== undefined) return row[quantityKey];
   }
   
   return undefined;
@@ -95,20 +127,43 @@ export const validateSupplyData = (rows) => {
       if (val !== undefined) processedRow[field] = val;
     });
 
+    // Validate nombre (required)
     if (!processedRow.nombre || String(processedRow.nombre).trim() === '') {
-      errors.push('Nombre es requerido');
+      errors.push('Nombre/Producto es requerido');
+    } else {
+      processedRow.nombre = String(processedRow.nombre).trim();
     }
-    if (processedRow.piezas === undefined || processedRow.piezas === null || isNaN(Number(processedRow.piezas)) || Number(processedRow.piezas) < 0) {
+
+    // Validate piezas (required)
+    if (processedRow.piezas === undefined || processedRow.piezas === null || 
+        String(processedRow.piezas).trim() === '' || 
+        isNaN(Number(processedRow.piezas)) || 
+        Number(processedRow.piezas) < 0) {
       errors.push('Piezas debe ser un número mayor o igual a 0');
+    } else {
+      processedRow.piezas = Number(processedRow.piezas);
     }
-    if (processedRow.stock_deseado === undefined || processedRow.stock_deseado === null || isNaN(Number(processedRow.stock_deseado)) || Number(processedRow.stock_deseado) < 0) {
-      errors.push('Stock deseado debe ser un número mayor o igual a 0');
+
+    // Handle stock_deseado (optional - use piezas as default if not provided)
+    if (processedRow.stock_deseado === undefined || 
+        processedRow.stock_deseado === null || 
+        String(processedRow.stock_deseado).trim() === '') {
+      // If stock_deseado is not provided, use piezas as default
+      processedRow.stock_deseado = processedRow.piezas || 0;
+    } else if (isNaN(Number(processedRow.stock_deseado)) || Number(processedRow.stock_deseado) < 0) {
+      errors.push('Stock deseado debe ser un número mayor or igual a 0');
+    } else {
+      processedRow.stock_deseado = Number(processedRow.stock_deseado);
     }
 
     if (errors.length > 0) {
       invalid.push({ row: rowNum, data: processedRow, errors });
     } else {
-      valid.push({ ...processedRow, piezas: Number(processedRow.piezas), stock_deseado: Number(processedRow.stock_deseado) });
+      valid.push({
+        nombre: processedRow.nombre,
+        piezas: processedRow.piezas,
+        stock_deseado: processedRow.stock_deseado
+      });
     }
   });
 
@@ -185,12 +240,56 @@ export const validateEquipmentData = (rows) => {
 };
 
 export const importSupplies = async (validatedData) => {
-  const promises = validatedData.map(async (item) => {
+  console.log(`Starting import of ${validatedData.length} supplies`);
+  
+  const promises = validatedData.map(async (item, index) => {
     try {
+      console.log(`Creating supply ${index + 1}:`, item);
+      
+      // Check if supply with same name already exists
+      try {
+        const existing = await pb.collection('supplies').getFirstListItem(`nombre = "${item.nombre}"`);
+        if (existing) {
+          console.log(`Supply "${item.nombre}" already exists, skipping`);
+          return { success: false, item, error: `Ya existe un insumo con el nombre "${item.nombre}"` };
+        }
+      } catch (existsError) {
+        // If error is "not found", that's good - means no duplicate
+        if (existsError.status !== 404) {
+          console.error('Error checking for duplicates:', existsError);
+        }
+      }
+      
       const record = await pb.collection('supplies').create(item);
+      console.log(`Successfully created supply:`, record.nombre);
       return { success: true, data: record };
     } catch (error) {
-      return { success: false, item, error: error.message };
+      console.error(`Failed to create supply "${item.nombre}":`, error);
+      console.error('Error details:', error.response?.data || error.message);
+      
+      // Extract more specific error information
+      let errorMessage = error.message;
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (typeof errorData === 'object') {
+          // Handle field-specific errors
+          const fieldErrors = [];
+          Object.keys(errorData).forEach(field => {
+            if (errorData[field] && errorData[field].message) {
+              fieldErrors.push(`${field}: ${errorData[field].message}`);
+            } else if (errorData[field]) {
+              fieldErrors.push(`${field}: ${errorData[field]}`);
+            }
+          });
+          if (fieldErrors.length > 0) {
+            errorMessage = fieldErrors.join(', ');
+          }
+        }
+      }
+      
+      return { success: false, item, error: errorMessage };
     }
   });
 
@@ -198,6 +297,11 @@ export const importSupplies = async (validatedData) => {
 
   const success = results.filter(r => r.success).map(r => r.data);
   const errors = results.filter(r => !r.success).map(r => ({ item: r.item, error: r.error }));
+
+  console.log(`Import completed: ${success.length} successful, ${errors.length} failed`);
+  if (errors.length > 0) {
+    console.log('Failed items:', errors);
+  }
 
   return { success, errors };
 };
@@ -250,8 +354,9 @@ export const generateTemplate = (type) => {
 
   if (type === 'supplies') {
     data = [
-      { nombre: 'Tornillo M5', piezas: 100, stock_deseado: 50 },
-      { nombre: 'Cable UTP Cat6', piezas: 200, stock_deseado: 100 }
+      { PRODUCTO: 'Sacapuntas', PIEZAS: 57 },
+      { PRODUCTO: 'Lápiz HB', PIEZAS: 120 },
+      { PRODUCTO: 'Borrador', PIEZAS: 85 }
     ];
     filename = 'plantilla_insumos.xlsx';
   } else if (type === 'equipments') {

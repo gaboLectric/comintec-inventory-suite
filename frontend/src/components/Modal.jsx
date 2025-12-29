@@ -35,7 +35,7 @@ const Overlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1100;
   padding: var(--space-4);
   animation: ${fadeIn} var(--transition-normal);
   

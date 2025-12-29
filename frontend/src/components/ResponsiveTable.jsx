@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDebounce, useViewport } from '../hooks';
@@ -269,6 +269,7 @@ export const ResponsiveTable = React.memo(function ResponsiveTable({
   pagination = {}, 
   rowStyle,
   isSearching = false,
+  initialSearchTerm = '',
   // Mobile card specific props
   mobileCardRenderer,
   imageField,
@@ -279,14 +280,22 @@ export const ResponsiveTable = React.memo(function ResponsiveTable({
   onCardClick,
   ...props 
 }) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [searchFocused, setSearchFocused] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { isMobile } = useViewport();
+  const lastCalledTerm = useRef(initialSearchTerm);
 
-  // Execute search when debounced term changes
+  // Update local searchTerm when initialSearchTerm changes
   useEffect(() => {
-    if (onSearch) {
+    setSearchTerm(initialSearchTerm);
+  }, [initialSearchTerm]);
+
+  // Execute search when debounced term changes and it's different from last called
+  useEffect(() => {
+    if (onSearch && debouncedSearchTerm !== lastCalledTerm.current) {
       onSearch(debouncedSearchTerm);
+      lastCalledTerm.current = debouncedSearchTerm;
     }
   }, [debouncedSearchTerm, onSearch]);
 
@@ -357,6 +366,8 @@ export const ResponsiveTable = React.memo(function ResponsiveTable({
                 value={searchTerm} 
                 onChange={handleSearch}
                 disabled={isSearching}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
               />
               {isSearching && (
                 <div style={{ 
@@ -370,7 +381,8 @@ export const ResponsiveTable = React.memo(function ResponsiveTable({
               )}
             </SearchContainer>
           )}
-          {actions && (
+
+          {actions && !searchFocused && (
             <ActionsContainer>
               {actions}
             </ActionsContainer>

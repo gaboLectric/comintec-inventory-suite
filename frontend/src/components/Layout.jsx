@@ -591,6 +591,18 @@ export function Layout() {
     }
   }, [isMobile]);
 
+  // Close sidebar when modals open on mobile
+  useEffect(() => {
+    const handleCloseSidebar = () => {
+      if (isMobile) {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('closeSidebar', handleCloseSidebar);
+    return () => window.removeEventListener('closeSidebar', handleCloseSidebar);
+  }, [isMobile]);
+
   // Handle keyboard visibility for focus management
   useEffect(() => {
     if (keyboardState.isVisible) {

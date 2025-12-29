@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styled from '@emotion/styled';
 import { MobileModal } from './MobileModal';
 import { ButtonStyled, ButtonGroup } from './FormComponents';
@@ -36,15 +36,46 @@ const PreviewTable = styled.table`
     padding: var(--space-2);
     border: 1px solid var(--border-color-medium);
     text-align: left;
+    vertical-align: top;
   }
 
   th {
     background: var(--bg-tertiary);
     font-weight: var(--font-weight-semibold);
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
   tr.error {
     background: rgba(239, 68, 68, 0.1);
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 767px) {
+    font-size: var(--font-size-xs);
+    
+    th, td {
+      padding: var(--space-1) var(--space-2);
+      font-size: var(--font-size-xs);
+    }
+  }
+`;
+
+const TableContainer = styled.div`
+  max-height: 60vh;
+  overflow: auto;
+  border: 1px solid var(--border-color-medium);
+  border-radius: var(--radius-sm);
+  
+  /* Mobile: Enhanced scrolling */
+  @media (max-width: 767px) {
+    max-height: 50vh;
+    -webkit-overflow-scrolling: touch;
+    
+    /* Ensure table scrolls horizontally on mobile */
+    overflow-x: auto;
+    overflow-y: auto;
   }
 `;
 
@@ -76,7 +107,7 @@ const ProgressBar = styled.div`
   div {
     height: 100%;
     background: #FF6B35;
-    width: ${props => props.progress}%;
+    width: ${props => props.$progress}%;
     transition: width 0.3s ease;
   }
 `;
@@ -213,7 +244,7 @@ export function ImportModal({ isOpen, onClose, type, onImportComplete }) {
         )}
       </div>
 
-      <div style={{ maxHeight: '60vh', overflow: 'auto', border: '1px solid var(--border-color-medium)', borderRadius: 'var(--radius-sm)' }}>
+      <TableContainer>
         <PreviewTable>
           <thead>
             <tr>
@@ -275,6 +306,37 @@ export function ImportModal({ isOpen, onClose, type, onImportComplete }) {
                     if (value === '') displayRow[field] = 'Sin datos';
                     else displayRow[field] = value;
                  });
+              } else if (type === 'supplies') {
+                 // Apply same logic as validateSupplyData for supplies
+                 const ALIASES = {
+                    nombre: ['nombre', 'producto', 'descripcion', 'insumo', 'item', 'articulo', 'material'],
+                    piezas: ['piezas', 'cantidad', 'stock', 'existencia', 'qty', 'cant', 'unidades', 'inventario'],
+                    stock_deseado: ['stock_deseado', 'stock_minimo', 'minimo', 'ideal', 'target', 'objetivo', 'meta']
+                 };
+                 
+                 const findVal = (r, f) => {
+                    if (r[f] !== undefined) return r[f];
+                    const aliases = ALIASES[f] || [];
+                    for (const alias of aliases) {
+                        if (r[alias] !== undefined) return r[alias];
+                    }
+                    return undefined;
+                 };
+
+                 // Map fields using aliases
+                 const nombre = findVal(row, 'nombre');
+                 const piezas = findVal(row, 'piezas');
+                 const stock_deseado = findVal(row, 'stock_deseado');
+
+                 displayRow.nombre = nombre ? String(nombre).trim() : '';
+                 displayRow.piezas = piezas !== undefined ? Number(piezas) : '';
+                 
+                 // If stock_deseado is not provided, use piezas as default
+                 if (stock_deseado === undefined || stock_deseado === null || String(stock_deseado).trim() === '') {
+                   displayRow.stock_deseado = displayRow.piezas || 0;
+                 } else {
+                   displayRow.stock_deseado = Number(stock_deseado);
+                 }
               }
 
               const isInvalid = validationResults.invalid.find(inv => inv.row === i + 2);
@@ -321,7 +383,7 @@ export function ImportModal({ isOpen, onClose, type, onImportComplete }) {
             ... y {parsedData.length - 100} registros más
           </p>
         )}
-      </div>
+      </TableContainer>
 
       <ButtonGroup>
         <ButtonStyled $variant="secondary" onClick={() => setStep('upload')}>Volver</ButtonStyled>
@@ -336,7 +398,7 @@ export function ImportModal({ isOpen, onClose, type, onImportComplete }) {
     <StepContainer>
       <div style={{ textAlign: 'center', padding: 32 }}>
         <h3>Importando registros...</h3>
-        <ProgressBar progress={progress}>
+        <ProgressBar $progress={progress}>
           <div />
         </ProgressBar>
         <p>{Math.round(progress)}% completado</p>

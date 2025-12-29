@@ -9,6 +9,23 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    // Dev-only: when exposing Vite via tunnels (trycloudflare/ngrok), the Host header
+    // will be the public tunnel hostname. Allow it so Vite doesn't block requests.
+    allowedHosts: true,
+    proxy: {
+      // Forward PocketBase API + realtime through the same origin.
+      '/api': {
+        target: 'http://pocketbase:8090',
+        changeOrigin: true,
+        secure: false,
+      },
+      // Optional: PocketBase admin UI (handy in dev, also works through the tunnel)
+      '/_/': {
+        target: 'http://pocketbase:8090',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
     https: process.env.VITE_HTTPS === 'true' ? {
       key: fs.readFileSync(path.resolve(__dirname, './ssl/server.key')),
       cert: fs.readFileSync(path.resolve(__dirname, './ssl/server.crt'))

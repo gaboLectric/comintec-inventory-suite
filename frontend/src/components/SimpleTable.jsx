@@ -43,7 +43,8 @@ const TableContainer = styled.div`
 `;
 
 const TableHeader = styled.div`
-  padding: var(--space-4) var(--space-5);
+  /* Reduce horizontal padding so search field aligns closer to card edge */
+  padding: var(--space-3) var(--space-3);
   border-bottom: 1px solid var(--glass-border);
   background: var(--glass-bg-light);
   backdrop-filter: blur(var(--glass-blur-light));
@@ -123,7 +124,8 @@ const SearchContainer = styled.div`
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  /* tighter horizontal padding inside the search box */
+  padding: var(--space-2) var(--space-2);
   background: var(--glass-bg-medium);
   backdrop-filter: blur(var(--glass-blur-light));
   -webkit-backdrop-filter: blur(var(--glass-blur-light));
@@ -150,7 +152,8 @@ const SearchInput = styled.input`
   color: var(--font-color-primary);
   font-size: var(--font-size-sm);
   outline: none;
-  width: 200px;
+  flex: 1;
+  min-width: 140px;
 
   &::placeholder {
     color: var(--font-color-tertiary);
@@ -216,6 +219,7 @@ const PageButton = styled.button`
 
 export const SimpleTable = React.memo(function SimpleTable({ title, columns, data, actions, onSearch, pagination = {}, rowStyle }) {
     const [searchTerm, setSearchTerm] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
     // Ejecutar búsqueda cuando el término con debounce cambie
@@ -234,17 +238,24 @@ export const SimpleTable = React.memo(function SimpleTable({ title, columns, dat
             <TableHeader>
                 {/* Title removed as per request */}
                 <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flex: 1 }}>
-                    {onSearch && (
-                        <SearchContainer>
-                            <Search size={16} color="var(--font-color-secondary)" />
-                            <SearchInput 
-                                placeholder="Buscar..." 
-                                value={searchTerm} 
-                                onChange={handleSearch} 
-                            />
-                        </SearchContainer>
-                    )}
+                  {onSearch && (
+                    <div style={{ flex: 1 }}>
+                      <SearchContainer style={{ width: '100%' }}>
+                        <Search size={16} color="var(--font-color-secondary)" />
+                        <SearchInput
+                          placeholder="Buscar..."
+                          value={searchTerm}
+                          onChange={handleSearch}
+                          onFocus={() => setSearchFocused(true)}
+                          onBlur={() => setSearchFocused(false)}
+                        />
+                      </SearchContainer>
+                    </div>
+                  )}
+
+                  <div style={{ display: (!onSearch || !searchFocused) ? 'flex' : 'none', gap: 'var(--space-3)', alignItems: 'center' }}>
                     {actions}
+                  </div>
                 </div>
             </TableHeader>
             <div style={{ 

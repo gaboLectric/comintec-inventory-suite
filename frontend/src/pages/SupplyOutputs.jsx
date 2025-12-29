@@ -138,8 +138,8 @@ export function SupplyOutputs() {
                 data={outputs} 
                 onSearch={handleSearch}
                 actions={
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--font-color-secondary)' }}>
+                    <div className="actions-row">
+                        <label className="actions-label" style={{ fontSize: '0.875rem', color: 'var(--font-color-secondary)' }}>
                             <input 
                                 type="checkbox" 
                                 checked={showAllHistory} 
@@ -149,7 +149,7 @@ export function SupplyOutputs() {
                             Mostrar todo el historial
                         </label>
                         {canCreate && (
-                            <GlassButton variant="primary" onClick={() => setIsModalOpen(true)}>
+                            <GlassButton variant="primary" onClick={() => setIsModalOpen(true)} className="actions-button">
                                 Registrar Salida
                             </GlassButton>
                         )}
